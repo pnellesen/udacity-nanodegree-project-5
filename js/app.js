@@ -29,10 +29,27 @@ var locationModel = function (location) {
 var locationViewModel = function() {
 	var self = this;
 	this.locationList = ko.observableArray([]);
+	this.mapOptions = {
+		      center: { lat: -34.397, lng: 150.644},
+		      zoom: 8
+	};
+	this.map = new google.maps.Map(document.getElementById('mainMap'), this.mapOptions);
+	
+    google.maps.event.addListener(this.map, 'click', function(event) {
+    	console.log("Map Clicked");
+    	var marker = new google.maps.Marker({position: event.latLng, map: self.map});
+    	google.maps.event.addListener(marker, 'click', function(event) {
+    		console.log("Marker Clicked  at lat/lng: "+ marker.getPosition().toString());
+    	});
+    	// Todo: add handler to create a new location item
+    	
+    	
+     });
+	
 	locationData.forEach(function(thisLocation) {
 		self.locationList.push(new locationModel(thisLocation));
 	})
-	//this.currentLocation = ko.observable(this.locationList()[0]);// Not sure about this, but keep for now
+	
 	
 	
 	/* -- copied from CatClicer - KO for reference --
