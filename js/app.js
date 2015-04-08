@@ -1,6 +1,32 @@
-var locationData = [{}];//This should hold location information for each marker, in a format compatible with Google Map API
-var locationModel = function (location) { 
+//This should hold location information for each marker, in a format compatible with Google Map API
+var locationData = [{}];
+var LocationModel = function (marker,map) {
+	var self = this;
+	this.icon = ko.observable(marker.getIcon());
+	this.title = ko.observable(marker.getTitle());
+	this.lat = ko.observable(marker.getPosition().lat());
+	this.lng = ko.observable(marker.getPosition().lng());
+	
 
+	this.infoWindow = new google.maps.InfoWindow({
+		content:"This is the marker at " + this.lat() + " lat. and " + this.lng() + " long."
+	});
+	
+	console.log("New marker. lat: " + this.lat() + " - long: " + this.lng());
+	google.maps.event.addListener(marker, 'click', function(event) {
+		console.log("Marker Clicked  at lat/lng: "+ self.lat() + "/" + self.lng());
+		self.infoWindow.open(map,marker);
+	});
+	
+	
+	
+	/* can repostion in this fashion:
+	this.lat(this.lat() - 4);
+	this.lng(this.lng() - 4);
+	marker.setPosition(new google.maps.LatLng(this.lat(),this.lng()));
+
+	console.log("Marker position is now. lat: " + this.lat() + " - long: " + this.lng());
+	*/
 	
 	
 
@@ -28,7 +54,7 @@ var locationModel = function (location) {
 
 var locationViewModel = function() {
 	var self = this;
-	this.locationList = ko.observableArray([]);
+	this.markerList = ko.observableArray([]);
 	this.mapOptions = {
 		      center: { lat: -34.397, lng: 150.644},
 		      zoom: 8
@@ -38,18 +64,13 @@ var locationViewModel = function() {
     google.maps.event.addListener(this.map, 'click', function(event) {
     	console.log("Map Clicked");
     	var marker = new google.maps.Marker({position: event.latLng, map: self.map});
-    	google.maps.event.addListener(marker, 'click', function(event) {
-    		console.log("Marker Clicked  at lat/lng: "+ marker.getPosition().toString());
-    	});
-    	// Todo: add handler to create a new location item
-    	
-    	
+    	self.markerList.push(new LocationModel(marker,self.map));
      });
-	
+	/*
 	locationData.forEach(function(thisLocation) {
-		self.locationList.push(new locationModel(thisLocation));
+		self.markerList.push(new locationModel(marker));
 	})
-	
+	*/
 	
 	
 	/* -- copied from CatClicer - KO for reference --
