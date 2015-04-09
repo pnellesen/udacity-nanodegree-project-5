@@ -1,7 +1,8 @@
 //This should hold location information for each marker, in a format compatible with Google Map API
 var locationData = [{}];
-var LocationModel = function (marker,map) {// we use the map for the InfoWindow "open", otherwise wouldn't need it.
+var LocationModel = function (marker) {
 	var self = this;
+	this.marker = marker;
 	this.icon = ko.observable(marker.getIcon());
 	this.title = ko.observable(marker.getTitle());
 	this.lat = ko.observable(marker.getPosition().lat());
@@ -10,10 +11,6 @@ var LocationModel = function (marker,map) {// we use the map for the InfoWindow 
 	this.infoWindow = new google.maps.InfoWindow({
 		content:"This is the marker at " + this.locText()
 	});
-	google.maps.event.addListener(marker, 'click', function(event) {
-		self.infoWindow.open(map,marker);
-	});
-	
 	
 	
 	/* can repostion in this fashion:
@@ -59,7 +56,7 @@ var locationViewModel = function() {
 	this.map = new google.maps.Map(document.getElementById('mainMap'), this.mapOptions);
     google.maps.event.addListener(this.map, 'click', function(event) {
     	var marker = new google.maps.Marker({position: event.latLng, map: self.map});
-    	var location = new LocationModel(marker,self.map);
+    	var location = new LocationModel(marker);
     	self.markerList.push(location);
     	google.maps.event.addListener(marker, 'click', function(event) {
     		self.selectMarker(location);// This sets the selectedMarker observable to be whichever marker we click on.
@@ -70,6 +67,7 @@ var locationViewModel = function() {
     // Now we can do stuff in the DOM when a marker is selected, just bind to the "selectedMarker"
     this.selectMarker = function(currentMarker) {
     	self.selectedMarker(currentMarker);
+    	currentMarker.infoWindow.open(self.map,currentMarker.marker);
     }
 	
 	
