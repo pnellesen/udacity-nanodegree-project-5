@@ -23,9 +23,11 @@
 		<div class="col-sm-6"><p>Location search bar here</p></div>
 		<div class="col-sm-3"><span>Selected: </span><span data-bind="text:selectedMarker() ? selectedMarker().locText : 'None'"></span></div>
 		<div class="col-sm-3">
-			<select id="marker-list" data-bind="options:markerList,
-								optionsText:'locText',
-								value:selectedMarker">
+			<select id="marker-list" 
+				data-bind="options:markerList,
+					   optionsText:'locText',
+					   value:selectedMarker,
+					    event:{ change: $parent.listChange}">
 			</select>
 		</div>
 	</div>
