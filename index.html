@@ -21,8 +21,13 @@
 	</div>
 	<div class="row">
 		<div class="col-sm-6"><p>Location search bar here</p></div>
-		<div class="col-sm-3"><p>Enter address here(?)</p></div>
-		<div class="col-sm-3"><ul id="marker-list"></ul></div>
+		<div class="col-sm-3"><span>Selected: </span><span data-bind="text:selectedMarker() ? selectedMarker().locText : 'None'"></span></div>
+		<div class="col-sm-3">
+			<select id="marker-list" data-bind="options:markerList,
+								optionsText:'locText',
+								value:selectedMarker">
+			</select>
+		</div>
 	</div>
 </div>
 <div id="mainMap" class="col-md-12"><strong>Map will be here</strong></div>

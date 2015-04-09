@@ -1,20 +1,16 @@
 //This should hold location information for each marker, in a format compatible with Google Map API
 var locationData = [{}];
-var LocationModel = function (marker,map) {
+var LocationModel = function (marker,map) {// we use the map for the InfoWindow "open", otherwise wouldn't need it.
 	var self = this;
 	this.icon = ko.observable(marker.getIcon());
 	this.title = ko.observable(marker.getTitle());
 	this.lat = ko.observable(marker.getPosition().lat());
 	this.lng = ko.observable(marker.getPosition().lng());
-	
-
+	this.locText = ko.observable("Lat: " + this.lat().toFixed(2) + " - Lng: " + this.lng().toFixed(2));
 	this.infoWindow = new google.maps.InfoWindow({
-		content:"This is the marker at " + this.lat() + " lat. and " + this.lng() + " long."
+		content:"This is the marker at " + this.locText()
 	});
-	
-	console.log("New marker. lat: " + this.lat() + " - long: " + this.lng());
 	google.maps.event.addListener(marker, 'click', function(event) {
-		console.log("Marker Clicked  at lat/lng: "+ self.lat() + "/" + self.lng());
 		self.infoWindow.open(map,marker);
 	});
 	
@@ -23,9 +19,9 @@ var LocationModel = function (marker,map) {
 	/* can repostion in this fashion:
 	this.lat(this.lat() - 4);
 	this.lng(this.lng() - 4);
-	marker.setPosition(new google.maps.LatLng(this.lat(),this.lng()));
+	marker.setlocText(new google.maps.LatLng(this.lat(),this.lng()));
 
-	console.log("Marker position is now. lat: " + this.lat() + " - long: " + this.lng());
+	console.log("Marker locText is now. lat: " + this.lat() + " - long: " + this.lng());
 	*/
 	
 	
@@ -59,18 +55,22 @@ var locationViewModel = function() {
 		      center: { lat: -34.397, lng: 150.644},
 		      zoom: 8
 	};
+	// All the map functions in ViewModel 
 	this.map = new google.maps.Map(document.getElementById('mainMap'), this.mapOptions);
-	
     google.maps.event.addListener(this.map, 'click', function(event) {
-    	console.log("Map Clicked");
     	var marker = new google.maps.Marker({position: event.latLng, map: self.map});
-    	self.markerList.push(new LocationModel(marker,self.map));
+    	var location = new LocationModel(marker,self.map);
+    	self.markerList.push(location);
+    	google.maps.event.addListener(marker, 'click', function(event) {
+    		self.selectMarker(location);// This sets the selectedMarker observable to be whichever marker we click on.
+    	})
      });
-	/*
-	locationData.forEach(function(thisLocation) {
-		self.markerList.push(new locationModel(marker));
-	})
-	*/
+    this.selectedMarker = ko.observable();
+    
+    // Now we can do stuff in the DOM when a marker is selected, just bind to the "selectedMarker"
+    this.selectMarker = function(currentMarker) {
+    	self.selectedMarker(currentMarker);
+    }
 	
 	
 	/* -- copied from CatClicer - KO for reference --
