@@ -68,6 +68,9 @@ var locationViewModel = function() {
     this.selectMarker = function(currentMarker) {
     	self.selectedMarker(currentMarker);
     	currentMarker.infoWindow.open(self.map,currentMarker.marker);
+    };
+    this.listChange = function(obj, event) {
+    	self.selectMarker(self.selectedMarker());
     }
 	
 	
