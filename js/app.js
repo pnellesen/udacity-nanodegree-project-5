@@ -11,24 +11,7 @@ var LocationModel = function (marker) {
 	this.infoWindow = new google.maps.InfoWindow({
 		content:"This is the marker at " + this.locText()
 	});
-	
-	
-	/* can repostion in this fashion:
-	this.lat(this.lat() - 4);
-	this.lng(this.lng() - 4);
-	marker.setlocText(new google.maps.LatLng(this.lat(),this.lng()));
-
-	console.log("Marker locText is now. lat: " + this.lat() + " - long: " + this.lng());
-	*/
-	
-	
-
 	/*  -- copied from CatClicker - KO for reference --
-	this.name = ko.observable(catItem.name);
-	this.url = ko.observable(catItem.url);
-	this.levels= ko.observableArray(["Newborn","Infant","Kitten","Fullgrown"]);
-	this.nicknames = ko.observableArray(catItem.nicknames);
-	this.clickCount= ko.observable(catItem.clickCount);
 	this.level = ko.computed(function() {
 		var level;
 		if (this.clickCount() < 10) {
@@ -72,24 +55,6 @@ var locationViewModel = function() {
     this.listChange = function(obj, event) {
     	self.selectMarker(self.selectedMarker());
     }
-	
-	
-	/* -- copied from CatClicer - KO for reference --
-	var self = this;
-	this.catList = ko.observableArray([]);
-	catData.forEach(function(thisCat) {
-		self.catList.push(new CatModel(thisCat));
-	})
-	this.currentCat = ko.observable(this.catList()[0]);
-	this.incrementCount = function() {
-		self.currentCat().clickCount(self.currentCat().clickCount() + 1);
-	};
-	
-	this.selectCat = function(selectedCat) {
-		self.currentCat(selectedCat);
-	}
-	-- end reference code -- */
-	
 };
 
 ko.applyBindings(new locationViewModel());
