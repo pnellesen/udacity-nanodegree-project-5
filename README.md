@@ -8,3 +8,5 @@ Some useful urls for this project:
 - To add a marker on-click: http://stackoverflow.com/questions/8550286/how-to-get-latitude-longitude-onclick-of-a-map-in-google-maps-api-v3-javascript
 - To bind select change event to function in ViewModel: http://stackoverflow.com/questions/11078016/change-event-on-select-with-knockout-binding-how-can-i-know-if-its-a-real-chang
 - observable array tips (including a filter): http://www.strathweb.com/2012/07/knockout-js-pro-tips-working-with-observable-arrays/
+- Simple Live Search example, using ko's "ArrayFilter" method: http://stackoverflow.com/questions/23397975/knockout-live-search
+- Overview of Knockout utility functions: http://www.knockmeout.net/2011/04/utility-functions-in-knockoutjs.html 

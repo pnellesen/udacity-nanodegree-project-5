@@ -11,21 +11,7 @@ var LocationModel = function (marker) {
 	this.infoWindow = new google.maps.InfoWindow({
 		content:"This is the marker at " + this.locText()
 	});
-	/*  -- copied from CatClicker - KO for reference --
-	this.level = ko.computed(function() {
-		var level;
-		if (this.clickCount() < 10) {
-			level = this.levels()[0];
-		} else if (this.clickCount() < 15) {
-			level = this.levels()[1];
-		} else if (this.clickCount() < 20) {
-			level = this.levels()[2];
-		} else {
-			level = this.levels()[3];
-		}
-		return level;
-	}, this);
-	-- end reference code -- */
+
 }
 
 var locationViewModel = function() {
@@ -53,11 +39,26 @@ var locationViewModel = function() {
     	currentMarker.infoWindow.open(self.map,currentMarker.marker);
     };
     this.listChange = function(obj, event) {
-    	self.selectMarker(self.selectedMarker());
-    }
+    	if (event.originalEvent) self.selectedMarker().infoWindow.open(self.map,self.selectedMarker().marker);// Only pop info window if changed by user.
+    };
+    
+    // Let's build out a simple filter for the options list here. We don't modify our model, just what appears in the options
+    // This technique extrapolated from question found at http://stackoverflow.com/questions/23397975/knockout-live-search
+    this.srchTxt = ko.observable('');
+    this.visibleOptions = ko.computed(function() {
+    	 return ko.utils.arrayFilter(self.markerList(), function(item) {
+    		 var visible = (item.locText().toLowerCase().indexOf(self.srchTxt().toLowerCase()) >= 0);
+    		 item.marker.setVisible(visible);// this shows/hides the marker
+    		 if (!visible) item.infoWindow.close();
+    		 return visible;
+         });
+    });
+   
 };
+var viewModel = new locationViewModel();
+ko.applyBindings(viewModel);
 
-ko.applyBindings(new locationViewModel());
+
 
 (function ($) {// Load map when page loads. 
 	console.log("app.js loaded");

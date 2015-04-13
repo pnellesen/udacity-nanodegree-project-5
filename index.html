@@ -20,11 +20,11 @@
 		<div class="col-md-12"><H1>Click anywhere (coming soon!)</H1></div>
 	</div>
 	<div class="row">
-		<div class="col-sm-6"><p>Location search bar here</p></div>
+		<div class="col-sm-6"><p>Location search bar here: <input type="text" data-bind="value: srchTxt, valueUpdate: 'keyup'" autocomplete="off"/></p></div>
 		<div class="col-sm-3"><span>Selected: </span><span data-bind="text:selectedMarker() ? selectedMarker().locText : 'None'"></span></div>
 		<div class="col-sm-3">
 			<select id="marker-list" 
-				data-bind="options:markerList,
+				data-bind="options:visibleOptions,
 					   optionsText:'locText',
 					   value:selectedMarker,
 					    event:{ change: listChange}">
