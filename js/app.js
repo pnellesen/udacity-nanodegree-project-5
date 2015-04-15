@@ -17,22 +17,9 @@ var LocationModel = function (marker) {
 var locationViewModel = function() {
 	var self = this;
 	this.markerList = ko.observableArray([]);
-	this.mapOptions = {
-		      center: { lat: -34.397, lng: 150.644},
-		      zoom: 8
-	};
-	// All the map functions in ViewModel 
-	this.map = new google.maps.Map(document.getElementById('mainMap'), this.mapOptions);
-    google.maps.event.addListener(this.map, 'click', function(event) {
-    	var marker = new google.maps.Marker({position: event.latLng, map: self.map});
-    	var location = new LocationModel(marker);
-    	self.markerList.push(location);
-    	google.maps.event.addListener(marker, 'click', function(event) {
-    		self.selectMarker(location);// This sets the selectedMarker observable to be whichever marker we click on.
-    	})
-     });
-    this.selectedMarker = ko.observable();
-    
+
+	this.selectedMarker = ko.observable();
+	
     // Now we can do stuff in the DOM when a marker is selected, just bind to the "selectedMarker"
     this.selectMarker = function(currentMarker) {
     	self.selectedMarker(currentMarker);
@@ -54,15 +41,50 @@ var locationViewModel = function() {
          });
     });
    
+
+	
+	// All the map functions in ViewModel
+    this.mapErrorTxt = ko.observable('');
+    this.mapSrc = ko.observable('');
+    this.loadMapSrc = function() {
+    	console.log("Fetching map src");
+    	try {
+    		self.mapSrc('https://maps.googleapis.com/maps/api/js?key=AIzaSyDWLOC6K3kwBnBnp_15oNgkuTjzZ87Fl_I&callback=viewModel.loadMap');	
+    	} catch (err) {
+    		console.log("error getting src");
+    	}
+    	
+    };
+    
+    this.loadMap = function() {
+    	console.log("loading map");
+    	// Add error checking here to insure that "window.google" actually exists - if the src url is malformed or for some reason breaks.
+    	if (window.google) {
+    	    this.mapOptions = {
+  			      center: { lat: -34.397, lng: 150.644},
+  			      zoom: 8
+	  		};
+	  	    this.map = new google.maps.Map(document.getElementById('mainMap'), this.mapOptions);
+	  		
+	  	    google.maps.event.addListener(this.map, 'click', function(event) {
+	  	    	var marker = new google.maps.Marker({position: event.latLng, map: self.map});
+	  	    	var location = new LocationModel(marker);
+	  	    	self.markerList.push(location);
+	  	    	google.maps.event.addListener(marker, 'click', function(event) {
+	  	    		self.selectMarker(location);// This sets the selectedMarker observable to be whichever marker we click on.
+	  	    	})
+	  	     });    		
+    	} else {
+    		alert("We are having trouble loading the map. Please reload the page to try again");// this could be nicer ;)
+    		console.log("Error: No google object loaded");
+    	}
+
+    }
+
+
 };
 var viewModel = new locationViewModel();
 ko.applyBindings(viewModel);
-
-
-
-(function ($) {// Load map when page loads. 
-	console.log("app.js loaded");
-	
-})(jQuery);
-
-
+window.onload = viewModel.loadMapSrc();
+//window.onload = viewModel.loadMap();
+console.log("app.js done.");
