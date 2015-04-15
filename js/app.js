@@ -59,24 +59,24 @@ var locationViewModel = function() {
     this.loadMap = function() {
     	console.log("loading map");
     	// Add error checking here to insure that "window.google" actually exists - if the src url is malformed or for some reason breaks.
-    	if (window.google) {
-    	    this.mapOptions = {
-  			      center: { lat: -34.397, lng: 150.644},
-  			      zoom: 8
-	  		};
-	  	    this.map = new google.maps.Map(document.getElementById('mainMap'), this.mapOptions);
-	  		
-	  	    google.maps.event.addListener(this.map, 'click', function(event) {
-	  	    	var marker = new google.maps.Marker({position: event.latLng, map: self.map});
-	  	    	var location = new LocationModel(marker);
-	  	    	self.markerList.push(location);
-	  	    	google.maps.event.addListener(marker, 'click', function(event) {
-	  	    		self.selectMarker(location);// This sets the selectedMarker observable to be whichever marker we click on.
-	  	    	})
-	  	     });    		
-    	} else {
+    	try {
+    		this.mapOptions = {
+    			      center: { lat: -34.397, lng: 150.644},
+    			      zoom: 8
+  	  		};
+  	  	    this.map = new google.maps.Map(document.getElementById('mainMap'), this.mapOptions);
+  	  		
+  	  	    google.maps.event.addListener(this.map, 'click', function(event) {
+  	  	    	var marker = new google.maps.Marker({position: event.latLng, map: self.map});
+  	  	    	var location = new LocationModel(marker);
+  	  	    	self.markerList.push(location);
+  	  	    	google.maps.event.addListener(marker, 'click', function(event) {
+  	  	    		self.selectMarker(location);// This sets the selectedMarker observable to be whichever marker we click on.
+  	  	    	})
+  	  	     });
+    	} catch (err) {
     		alert("We are having trouble loading the map. Please reload the page to try again");// this could be nicer ;)
-    		console.log("Error: No google object loaded");
+    		console.log("Error: " + err);    		
     	}
 
     }
