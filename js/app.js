@@ -8,11 +8,11 @@ var LocationModel = function (marker) {
 	this.lat = ko.observable(marker.getPosition().lat());
 	this.lng = ko.observable(marker.getPosition().lng());
 	this.locText = ko.observable("Lat: " + this.lat().toFixed(2) + " - Lng: " + this.lng().toFixed(2));
-	//this.radarMap = ko.observable(''); // May consider this
-	this.infoWindow = new google.maps.InfoWindow({
-		content:"<p>This is the marker at " + this.locText() + "</p>"
-	});
-
+	this.radarMap = ko.observable(''); 
+	this.windowContent = ko.computed(function() {
+		return "<p>This is the marker at " + this.locText() + "</p>" + this.radarMap();
+	},this);
+	this.hasOpenWindow = false;// Used to track if InfoWindow is opened at marker. Will allow us to manipulate InfoWindow open/close status during filtering
 }
 
 var locationViewModel = function() {
@@ -25,13 +25,17 @@ var locationViewModel = function() {
     this.selectMarker = function(currentMarker) {
     	self.selectedMarker(currentMarker);
     	self.getWeather(currentMarker);
-    	
-    	
-    	
-    	currentMarker.infoWindow.open(self.map,currentMarker.marker);
+    	self.map.setCenter(currentMarker.marker.getPosition());
+    	self.mapInfoWindow.setContent(currentMarker.windowContent());
+    	self.mapInfoWindow.open(self.map,currentMarker.marker);
+    	currentMarker.hasOpenWindow = true;
     };
     this.listChange = function(obj, event) {
-    	if (event.originalEvent) self.selectedMarker().infoWindow.open(self.map,self.selectedMarker().marker);// Only pop info window if changed by user.
+    	if (event.originalEvent) {// Only pop info window if changed by user.
+    		//We'll be opening InfoWindow at new marker, so make sure we set flag to false for previously selected marker.
+    		self.selectedMarker().hasOpenWindow = false;
+    		self.selectMarker(self.selectedMarker());
+    	}
     };
     
     // Let's build out a simple filter for the options list here. We don't modify our model, just what appears in the options
@@ -41,14 +45,16 @@ var locationViewModel = function() {
     	 return ko.utils.arrayFilter(self.markerList(), function(item) {
     		 var visible = (item.locText().toLowerCase().indexOf(self.srchTxt().toLowerCase()) >= 0);
     		 item.marker.setVisible(visible);// this shows/hides the marker
-    		 if (!visible) item.infoWindow.close();
+    		 if (!visible && item.hasOpenWindow) {//Close InfoWindow if opened at marker that will be hidden
+    			 item.hasOpenWindow = false;
+    			 self.mapInfoWindow.close();
+    		 }
     		 return visible;
          });
     });
-   
-
 	
 	// All the map functions in ViewModel
+    this.mapInfoWindow;// Only set up one InfoWindow that will be shared by all markers, per Google documentation
     this.mapErrorTxt = ko.observable('');
     this.mapSrc = ko.observable('');
     this.loadMapSrc = function() {
@@ -70,7 +76,7 @@ var locationViewModel = function() {
     			      zoom: 8
   	  		};
   	  	    this.map = new google.maps.Map(document.getElementById('mainMap'), this.mapOptions);
-  	  		
+  	  		self.mapInfoWindow = new google.maps.InfoWindow();
   	  	    google.maps.event.addListener(this.map, 'click', function(event) {
   	  	    	var marker = new google.maps.Marker({position: event.latLng, map: self.map});
   	  	    	var location = new LocationModel(marker);
@@ -95,13 +101,12 @@ var locationViewModel = function() {
     this.getWeather = function(currentMarker) {
     	// To do: get via Ajax with error checking
     	var radarUrl = "http://api.wunderground.com/api/d208634303ed569d/radar/image.gif?centerlat=" + currentMarker.lat() + "&centerlon=" + currentMarker.lng() + "&radius=100&width=100&height=100&newmaps=1";
-    	currentMarker.infoWindow.content = currentMarker.infoWindow.content + '<img src="' + radarUrl + '">'; 
-    	console.log("Radar url: " + radarUrl);
+    	currentMarker.radarMap('<img src="' + radarUrl + '">');
+    	console.log("Radar img: " + currentMarker.radarMap());
     	
     };
 };
 var viewModel = new locationViewModel();
 ko.applyBindings(viewModel);
 window.onload = viewModel.loadMapSrc();
-//window.onload = viewModel.loadMap();
 console.log("app.js done.");
