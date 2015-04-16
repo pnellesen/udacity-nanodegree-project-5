@@ -1,6 +1,8 @@
 # udacity-nanodegree-project-5
 Create a neighborhood map utilizing Google Maps API, as well as additional 3rd party APIs
 
+Includes Weather Radar maps, if available for given latitude/longitude, from the Weather Underground Weather api (http://www.wunderground.com/weather/api/) 
+
 Some useful urls for this project:
 
 - To add a Google Map to a Bootstrap page: http://tutsme-webdesign.info/add-a-google-map-to-a-bootstrap-3-contact-page/

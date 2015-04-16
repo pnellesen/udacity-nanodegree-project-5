@@ -8,8 +8,9 @@ var LocationModel = function (marker) {
 	this.lat = ko.observable(marker.getPosition().lat());
 	this.lng = ko.observable(marker.getPosition().lng());
 	this.locText = ko.observable("Lat: " + this.lat().toFixed(2) + " - Lng: " + this.lng().toFixed(2));
+	//this.radarMap = ko.observable(''); // May consider this
 	this.infoWindow = new google.maps.InfoWindow({
-		content:"This is the marker at " + this.locText()
+		content:"<p>This is the marker at " + this.locText() + "</p>"
 	});
 
 }
@@ -23,6 +24,10 @@ var locationViewModel = function() {
     // Now we can do stuff in the DOM when a marker is selected, just bind to the "selectedMarker"
     this.selectMarker = function(currentMarker) {
     	self.selectedMarker(currentMarker);
+    	self.getWeather(currentMarker);
+    	
+    	
+    	
     	currentMarker.infoWindow.open(self.map,currentMarker.marker);
     };
     this.listChange = function(obj, event) {
@@ -79,9 +84,21 @@ var locationViewModel = function() {
     		console.log("Error: " + err);    		
     	}
 
-    }
+    };
 
-
+    /* --------
+     Let's get a current weather radar map and forecast from weather underground api when a marker is selected.
+     Map will be centered on the lat/long. received from google map api.
+	 Url for single radar image: GET http://api.wunderground.com/api/[key here]/feature/image.format?params
+	 ex: GET http://api.wunderground.com/api/d208634303ed569d/feature/image.format?params
+	---------- */
+    this.getWeather = function(currentMarker) {
+    	// To do: get via Ajax with error checking
+    	var radarUrl = "http://api.wunderground.com/api/d208634303ed569d/radar/image.gif?centerlat=" + currentMarker.lat() + "&centerlon=" + currentMarker.lng() + "&radius=100&width=100&height=100&newmaps=1";
+    	currentMarker.infoWindow.content = currentMarker.infoWindow.content + '<img src="' + radarUrl + '">'; 
+    	console.log("Radar url: " + radarUrl);
+    	
+    };
 };
 var viewModel = new locationViewModel();
 ko.applyBindings(viewModel);
