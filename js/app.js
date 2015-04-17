@@ -7,10 +7,16 @@ var LocationModel = function (marker) {
 	this.title = ko.observable(marker.getTitle());
 	this.lat = ko.observable(marker.getPosition().lat());
 	this.lng = ko.observable(marker.getPosition().lng());
-	this.locText = ko.observable("Lat: " + this.lat().toFixed(2) + " - Lng: " + this.lng().toFixed(2));
+	this.city = ko.observable('');
+	this.state = ko.observable('');
+	this.country = ko.observable('');
+	this.currentTemp = ko.observable('');
+	this.locText = ko.computed(function() {
+		return this.city();
+	}, this);
 	this.radarMap = ko.observable(''); 
 	this.windowContent = ko.computed(function() {
-		return "<p>This is the marker at " + this.locText() + "</p>" + this.radarMap();
+		return "<p><strong>" + this.city() + "</strong> - " + this.state() + ", " + this.country() + "</p><p>Current temp: " + this.currentTemp() + "</p>" + this.radarMap();
 	},this);
 	this.hasOpenWindow = false;// Used to track if InfoWindow is opened at marker. Will allow us to manipulate InfoWindow open/close status during filtering
 }
@@ -23,17 +29,14 @@ var locationViewModel = function() {
 	
     // Now we can do stuff in the DOM when a marker is selected, just bind to the "selectedMarker"
     this.selectMarker = function(currentMarker) {
+    	self.selectedMarker().hasOpenWindow = false;
+    	self.mapInfoWindow.close();
     	self.selectedMarker(currentMarker);
-    	self.getWeather(currentMarker);
     	self.map.setCenter(currentMarker.marker.getPosition());
-    	self.mapInfoWindow.setContent(currentMarker.windowContent());
-    	self.mapInfoWindow.open(self.map,currentMarker.marker);
-    	currentMarker.hasOpenWindow = true;
+    	self.getLocationInfo(currentMarker);// Will update window content after ajax call
     };
     this.listChange = function(obj, event) {
     	if (event.originalEvent) {// Only pop info window if changed by user.
-    		//We'll be opening InfoWindow at new marker, so make sure we set flag to false for previously selected marker.
-    		self.selectedMarker().hasOpenWindow = false;
     		self.selectMarker(self.selectedMarker());
     	}
     };
@@ -43,7 +46,8 @@ var locationViewModel = function() {
     this.srchTxt = ko.observable('');
     this.visibleOptions = ko.computed(function() {
     	 return ko.utils.arrayFilter(self.markerList(), function(item) {
-    		 var visible = (item.locText().toLowerCase().indexOf(self.srchTxt().toLowerCase()) >= 0);
+    		 // This needs work - will show "visible" if text is part of html attributes or tags
+    		 var visible = (item.windowContent().toLowerCase().indexOf(self.srchTxt().toLowerCase()) >= 0);
     		 item.marker.setVisible(visible);// this shows/hides the marker
     		 if (!visible && item.hasOpenWindow) {//Close InfoWindow if opened at marker that will be hidden
     			 item.hasOpenWindow = false;
@@ -81,6 +85,8 @@ var locationViewModel = function() {
   	  	    	var marker = new google.maps.Marker({position: event.latLng, map: self.map});
   	  	    	var location = new LocationModel(marker);
   	  	    	self.markerList.push(location);
+  	  	    	self.getLocationInfo(location);
+  	  	    	self.selectMarker(location);
   	  	    	google.maps.event.addListener(marker, 'click', function(event) {
   	  	    		self.selectMarker(location);// This sets the selectedMarker observable to be whichever marker we click on.
   	  	    	})
@@ -93,17 +99,36 @@ var locationViewModel = function() {
     };
 
     /* --------
-     Let's get a current weather radar map and forecast from weather underground api when a marker is selected.
+     Let's get simple location info and current weather radar map/ forecast from weather underground api when a marker is selected.
      Map will be centered on the lat/long. received from google map api.
 	 Url for single radar image: GET http://api.wunderground.com/api/[key here]/feature/image.format?params
 	 ex: GET http://api.wunderground.com/api/d208634303ed569d/feature/image.format?params
+	 Note: may want to consider a timer function on this so that we only call it if it's been over some period of time before last pull
 	---------- */
-    this.getWeather = function(currentMarker) {
-    	// To do: get via Ajax with error checking
-    	var radarUrl = "http://api.wunderground.com/api/d208634303ed569d/radar/image.gif?centerlat=" + currentMarker.lat() + "&centerlon=" + currentMarker.lng() + "&radius=100&width=100&height=100&newmaps=1";
-    	currentMarker.radarMap('<img src="' + radarUrl + '">');
-    	console.log("Radar img: " + currentMarker.radarMap());
-    	
+    this.getLocationInfo = function(currentMarker) {
+    	console.log("url: " + "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json");
+    	$.ajax({
+  		  url : "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json",
+  		  dataType : "jsonp",
+  		  success : function(parsed_json) {
+  			  if (currentMarker.city() == '') {// No need to update "static" location info every time 
+      			  currentMarker.city(parsed_json['current_observation']['display_location']['city']);
+      			  currentMarker.state(parsed_json['current_observation']['display_location']['state_name']);
+      			  currentMarker.country(parsed_json['current_observation']['display_location']['country_iso3166']);      				  
+  			  }
+  			  currentMarker.currentTemp(parsed_json['current_observation']['temp_f'] + "&deg; F");
+  		      var radarUrl = "http://api.wunderground.com/api/d208634303ed569d/radar/image.gif?centerlat=" + currentMarker.lat() + "&centerlon=" + currentMarker.lng() + "&radius=100&width=100&height=100&newmaps=1";
+  		      currentMarker.radarMap('<img src="' + radarUrl + '">');
+  		      self.mapInfoWindow.setContent(currentMarker.windowContent());// doing this here will cause window to update with new map/temp info, if any.
+  		      self.mapInfoWindow.open(self.map,currentMarker.marker);
+  		      currentMarker.hasOpenWindow = true;
+  		  },
+  		  error: function() {
+  			  console.log("Ajax error thrown");
+  		  }
+      	}).fail(function(jqXHR, textStatus) {
+      		console.log("Ajax failed: " + textStatus);
+      	});    		
     };
 };
 var viewModel = new locationViewModel();
