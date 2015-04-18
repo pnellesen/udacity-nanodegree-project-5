@@ -23,6 +23,8 @@ var LocationModel = function (marker) {
 
 var locationViewModel = function() {
 	var self = this;
+	this.hitCount = 0;
+	this.timeCheck = new Date().getTime();
 	this.markerList = ko.observableArray([]);
 
 	this.selectedMarker = ko.observable();
@@ -85,7 +87,6 @@ var locationViewModel = function() {
   	  	    	var marker = new google.maps.Marker({position: event.latLng, map: self.map});
   	  	    	var location = new LocationModel(marker);
   	  	    	self.markerList.push(location);
-  	  	    	self.getLocationInfo(location);
   	  	    	self.selectMarker(location);
   	  	    	google.maps.event.addListener(marker, 'click', function(event) {
   	  	    		self.selectMarker(location);// This sets the selectedMarker observable to be whichever marker we click on.
@@ -104,31 +105,52 @@ var locationViewModel = function() {
 	 Url for single radar image: GET http://api.wunderground.com/api/[key here]/feature/image.format?params
 	 ex: GET http://api.wunderground.com/api/d208634303ed569d/feature/image.format?params
 	 Note: may want to consider a timer function on this so that we only call it if it's been over some period of time before last pull
+	 
+	 NOTE: The developer version of this api is limited to 10 calls/minute - putting in a check to enforce it. May be applicable to other apis which practice throttling, or may be useful simply to reduce unneeded calls for slowly updating info
 	---------- */
     this.getLocationInfo = function(currentMarker) {
-    	console.log("url: " + "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json");
-    	$.ajax({
-  		  url : "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json",
-  		  dataType : "jsonp",
-  		  success : function(parsed_json) {
-  			  if (currentMarker.city() == '') {// No need to update "static" location info every time 
-      			  currentMarker.city(parsed_json['current_observation']['display_location']['city']);
-      			  currentMarker.state(parsed_json['current_observation']['display_location']['state_name']);
-      			  currentMarker.country(parsed_json['current_observation']['display_location']['country_iso3166']);      				  
-  			  }
-  			  currentMarker.currentTemp(parsed_json['current_observation']['temp_f'] + "&deg; F");
-  		      var radarUrl = "http://api.wunderground.com/api/d208634303ed569d/radar/image.gif?centerlat=" + currentMarker.lat() + "&centerlon=" + currentMarker.lng() + "&radius=100&width=100&height=100&newmaps=1";
-  		      currentMarker.radarMap('<img src="' + radarUrl + '">');
-  		      self.mapInfoWindow.setContent(currentMarker.windowContent());// doing this here will cause window to update with new map/temp info, if any.
-  		      self.mapInfoWindow.open(self.map,currentMarker.marker);
-  		      currentMarker.hasOpenWindow = true;
-  		  },
-  		  error: function() {
-  			  console.log("Ajax error thrown");
-  		  }
-      	}).fail(function(jqXHR, textStatus) {
-      		console.log("Ajax failed: " + textStatus);
-      	});    		
+    	/* The following code used to determine if we can make the call to weather underground */
+    	var makeCall = true;
+		self.hitCount++;
+		var now = new Date().getTime();
+		var timeElapsed = now - self.timeCheck;
+		if (self.hitCount >= 10 && timeElapsed < 60000) makeCall = false;
+		/*--- End throttling check --- */
+    	if (makeCall) {
+    		console.log("url: " + "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json");
+    		$.ajax({
+        		  url : "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json",
+        		  dataType : "jsonp",
+        		  success : function(parsed_json) {
+        			  if (currentMarker.city() == '') {// No need to update "static" location info every time 
+            			  currentMarker.city(parsed_json['current_observation']['display_location']['city']);
+            			  currentMarker.state(parsed_json['current_observation']['display_location']['state_name']);
+            			  currentMarker.country(parsed_json['current_observation']['display_location']['country_iso3166']);      				  
+        			  }
+        			  currentMarker.currentTemp(parsed_json['current_observation']['temp_f'] + "&deg; F");
+        		      var radarUrl = "http://api.wunderground.com/api/d208634303ed569d/radar/image.gif?centerlat=" + currentMarker.lat() + "&centerlon=" + currentMarker.lng() + "&radius=100&width=100&height=100&newmaps=1";
+        		      currentMarker.radarMap('<img src="' + radarUrl + '">');
+        		      self.mapInfoWindow.setContent(currentMarker.windowContent());// doing this here will cause window to update with new map/temp info, if any.
+        		      self.mapInfoWindow.open(self.map,currentMarker.marker);
+        		      currentMarker.hasOpenWindow = true;
+        		  },
+        		  error: function() {
+        			  console.log("Ajax error thrown");
+        		  }
+            	}).fail(function(jqXHR, textStatus) {
+            		console.log("Ajax failed: " + textStatus);
+            	});    		
+    	} else {
+    		// If we've previously pulled info from WU, just use the old info while waiting for refresh
+    		if (currentMarker.city() != '') self.mapInfoWindow.open(self.map,currentMarker.marker);
+    		console.log("Not making call - too many hits/min");
+    	}
+		console.log("Hit count: " + self.hitCount + " - timeElapsed: " + timeElapsed + " - make call? " + makeCall);
+    	if (timeElapsed > 60000) {
+			// reset hit/min check once we're past 60 second mark
+			self.timeCheck = new Date().getTime();
+			self.hitCount = 0;
+		}
     };
 };
 var viewModel = new locationViewModel();
