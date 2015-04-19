@@ -23,8 +23,8 @@ var LocationModel = function (marker) {
 
 var locationViewModel = function() {
 	var self = this;
-	this.hitCount = 0;
-	this.timeCheck = new Date().getTime();
+	this.arrHitTimes = [];
+	//this.timeCheck = new Date().getTime();
 	this.markerList = ko.observableArray([]);
 
 	this.selectedMarker = ko.observable();
@@ -110,11 +110,14 @@ var locationViewModel = function() {
 	---------- */
     this.getLocationInfo = function(currentMarker) {
     	/* The following code used to determine if we can make the call to weather underground */
-    	var makeCall = true;
-		self.hitCount++;
-		var now = new Date().getTime();
-		var timeElapsed = now - self.timeCheck;
-		if (self.hitCount >= 10 && timeElapsed < 60000) makeCall = false;
+    	var makeCall = false;
+    	var now = new Date().getTime();
+		if (self.arrHitTimes.length < 10) makeCall = true;
+		if ((self.arrHitTimes.length == 10) && (now - self.arrHitTimes[0] > 60000)) {
+			makeCall = true;
+			self.arrHitTimes.shift();// we've checked the first timestamp in the array and it's ok. Remove it from the array, then add a new timestamp to the end of the array after making the call.
+		}
+		
 		/*--- End throttling check --- */
     	if (makeCall) {
     		console.log("url: " + "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json");
@@ -140,17 +143,13 @@ var locationViewModel = function() {
             	}).fail(function(jqXHR, textStatus) {
             		console.log("Ajax failed: " + textStatus);
             	});    		
+    		    self.arrHitTimes.push(new Date().getTime());
+    		    console.log("New timestamp array: " + self.arrHitTimes);
     	} else {
     		// If we've previously pulled info from WU, just use the old info while waiting for refresh
     		if (currentMarker.city() != '') self.mapInfoWindow.open(self.map,currentMarker.marker);
-    		console.log("Not making call - too many hits/min");
+    		console.log("Not making call - too many hits/min: " + (now - self.arrHitTimes[0]) + " - " + self.arrHitTimes);
     	}
-		console.log("Hit count: " + self.hitCount + " - timeElapsed: " + timeElapsed + " - make call? " + makeCall);
-    	if (timeElapsed > 60000) {
-			// reset hit/min check once we're past 60 second mark
-			self.timeCheck = new Date().getTime();
-			self.hitCount = 0;
-		}
     };
 };
 var viewModel = new locationViewModel();
