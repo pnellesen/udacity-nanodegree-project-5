@@ -48,8 +48,8 @@ var locationViewModel = function() {
     this.srchTxt = ko.observable('');
     this.visibleOptions = ko.computed(function() {
     	 return ko.utils.arrayFilter(self.markerList(), function(item) {
-    		 // This needs work - will show "visible" if text is part of html attributes or tags
-    		 var visible = (item.windowContent().toLowerCase().indexOf(self.srchTxt().toLowerCase()) >= 0);
+    		 // Make sure we're only filtering on content, and not markup: item.windowContent().replace(/(<[^>]*>)/g,' ') 
+    		 var visible = (item.windowContent().replace(/(<[^>]*>)/g,' ').toLowerCase().indexOf(self.srchTxt().toLowerCase()) >= 0);
     		 item.marker.setVisible(visible);// this shows/hides the marker
     		 if (!visible && item.hasOpenWindow) {//Close InfoWindow if opened at marker that will be hidden
     			 item.hasOpenWindow = false;
