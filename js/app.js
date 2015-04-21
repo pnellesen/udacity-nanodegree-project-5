@@ -16,7 +16,7 @@ var LocationModel = function (marker) {
 	}, this);
 	this.radarMap = ko.observable(''); 
 	this.windowContent = ko.computed(function() {
-		return "<p><strong>" + this.city() + "</strong> - " + this.state() + ", " + this.country() + "</p><p>Current temp: " + this.currentTemp() + "</p>" + this.radarMap();
+		return "<p><strong>" + this.city() + "</strong></p><p>" + this.state() + ", " + this.country() + "</p><p>Current temp: " + this.currentTemp() + "</p>" + this.radarMap();
 	},this);
 	this.hasOpenWindow = false;// Used to track if InfoWindow is opened at marker. Will allow us to manipulate InfoWindow open/close status during filtering
 }
@@ -24,9 +24,7 @@ var LocationModel = function (marker) {
 var locationViewModel = function() {
 	var self = this;
 	this.arrHitTimes = [];
-	//this.timeCheck = new Date().getTime();
 	this.markerList = ko.observableArray([]);
-
 	this.selectedMarker = ko.observable();
 	
     // Now we can do stuff in the DOM when a marker is selected, just bind to the "selectedMarker"
@@ -42,21 +40,37 @@ var locationViewModel = function() {
     		self.selectMarker(self.selectedMarker());
     	}
     };
+    this.saveMarkers = function() {
+    	console.log("Saving markers to storage");
+    }
     
+    this.removeMarkers = function() {
+    	console.log("Deleting all markers");
+    	// This from Google: https://developers.google.com/maps/documentation/javascript/examples/marker-remove
+    	for (var i = 0; i < self.markerList().length; i++) {
+    		self.markerList()[i].marker.setMap(null);
+    	}
+    	self.markerList([]);
+    }
     // Let's build out a simple filter for the options list here. We don't modify our model, just what appears in the options
     // This technique extrapolated from question found at http://stackoverflow.com/questions/23397975/knockout-live-search
     this.srchTxt = ko.observable('');
+    this.clearFilter = function() {
+    	self.srchTxt('');
+    }
     this.visibleOptions = ko.computed(function() {
-    	 return ko.utils.arrayFilter(self.markerList(), function(item) {
-    		 // Make sure we're only filtering on content, and not markup: item.windowContent().replace(/(<[^>]*>)/g,' ') 
-    		 var visible = (item.windowContent().replace(/(<[^>]*>)/g,' ').toLowerCase().indexOf(self.srchTxt().toLowerCase()) >= 0);
-    		 item.marker.setVisible(visible);// this shows/hides the marker
-    		 if (!visible && item.hasOpenWindow) {//Close InfoWindow if opened at marker that will be hidden
-    			 item.hasOpenWindow = false;
-    			 self.mapInfoWindow.close();
-    		 }
-    		 return visible;
-         });
+         if (self.markerList().length > 0) {//No need to run array filter if we don't have any markers
+        	 return ko.utils.arrayFilter(self.markerList(), function(item) {
+        		 // Make sure we're only filtering on content, and not markup: item.windowContent().replace(/(<[^>]*>)/g,' ') 
+        		 var visible = (item.windowContent().replace(/(<[^>]*>)/g,'').toLowerCase().indexOf(self.srchTxt().toLowerCase()) >= 0);
+        		 item.marker.setVisible(visible);// this shows/hides the marker
+        		 if (!visible && item.hasOpenWindow) {//Close InfoWindow if opened at marker that will be hidden
+        			 item.hasOpenWindow = false;
+        			 self.mapInfoWindow.close();
+        		 }
+        		 return visible;
+             });	 
+         }
     });
 	
 	// All the map functions in ViewModel
@@ -109,17 +123,21 @@ var locationViewModel = function() {
 	 NOTE: The developer version of this api is limited to 10 calls/minute - putting in a check to enforce it. May be applicable to other apis which practice throttling, or may be useful simply to reduce unneeded calls for slowly updating info
 	---------- */
     this.getLocationInfo = function(currentMarker) {
+    	
     	/* The following code used to determine if we can make the call to weather underground */
     	var makeCall = false;
     	var now = new Date().getTime();
 		if (self.arrHitTimes.length < 10) makeCall = true;
 		if ((self.arrHitTimes.length == 10) && (now - self.arrHitTimes[0] > 60000)) {
+			/* we've checked the first timestamp in the array and it's ok.
+			   Remove it from the array, then add a new timestamp to the end of the array after making the call.
+			*/
 			makeCall = true;
-			self.arrHitTimes.shift();// we've checked the first timestamp in the array and it's ok. Remove it from the array, then add a new timestamp to the end of the array after making the call.
+			self.arrHitTimes.shift();
 		}
-		
 		/*--- End throttling check --- */
-    	if (makeCall) {
+
+		if (makeCall) {
     		console.log("url: " + "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json");
     		$.ajax({
         		  url : "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json",

@@ -17,18 +17,20 @@
 <body>
 <div class="container-fluid"><!--  For Bootstrap -->
 	<div class="row">
-		<div class="col-md-12"><H1>Click anywhere (coming soon!)</H1></div>
+		<div class="col-md-12 topRow">Project 5 - Clickable Google Map w/ 3rd party API</div>
 	</div>
 	<div class="row">
-		<div class="col-sm-6"><p>Location search bar here: <input type="text" data-bind="value: srchTxt, valueUpdate: 'keyup'" autocomplete="off"/></p></div>
-		<div class="col-sm-3"><span>Selected: </span><span data-bind="text:selectedMarker() ? selectedMarker().locText : 'None'"></span></div>
-		<div class="col-sm-3">
+		<div class="col-md-6 headerDiv"><div class="filterBox">Filter: <input type="text" data-bind="value: srchTxt, valueUpdate: 'keyup'" autocomplete="off"/><span class="textClear" title="Clear filter" data-bind="click: clearFilter;">x</span></div></div>
+		<!-- <div class="col-sm-3"><span>Selected: </span><span data-bind="text:selectedMarker() ? selectedMarker().locText : 'None'"></span></div> -->
+		<div class="col-md-6 headerDiv" data-bind="visible: markerList().length > 0">
+			Your Markers:
 			<select id="marker-list" 
 				data-bind="options:visibleOptions,
 					   optionsText:'locText',
 					   value:selectedMarker,
 					    event:{ change: listChange}">
 			</select>
+			<button title="Save list to local storage" data-bind="click: saveMarkers;">Save</button><button title="Clear all markers" data-bind="click: removeMarkers">Clear</button>
 		</div>
 	</div>
 </div>
