@@ -19,12 +19,22 @@ var LocationModel = function (marker) {
 		return "<p><strong>" + this.city() + "</strong></p><p>" + this.state() + ", " + this.country() + "</p><p>Current temp: " + this.currentTemp() + "</p>" + this.radarMap();
 	},this);
 	this.hasOpenWindow = false;// Used to track if InfoWindow is opened at marker. Will allow us to manipulate InfoWindow open/close status during filtering
+	this.saveData = ko.computed(function() {
+		return {
+			lat: this.lat(),
+			lng: this.lng(),
+			city: this.city(),
+			state: this.state(),
+			country: this.country()
+		}
+	},this);
 }
 
 var locationViewModel = function() {
 	var self = this;
 	this.arrHitTimes = [];
 	this.markerList = ko.observableArray([]);
+	this.saveAll = ko.observableArray([]);
 	this.selectedMarker = ko.observable();
 	
     // Now we can do stuff in the DOM when a marker is selected, just bind to the "selectedMarker"
@@ -41,7 +51,11 @@ var locationViewModel = function() {
     	}
     };
     this.saveMarkers = function() {
-    	console.log("Saving markers to storage");
+    	var arrSave = [];
+    	for (var i = 0; i < self.markerList().length; i++) {
+    		arrSave.push(self.markerList()[i].saveData());
+    	}
+    	console.log("Saving marker info to storage " + ko.toJSON(arrSave));
     }
     
     this.removeMarkers = function() {
