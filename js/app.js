@@ -16,7 +16,7 @@ var LocationModel = function (marker) {
 	}, this);
 	this.radarMap = ko.observable(''); 
 	this.windowContent = ko.computed(function() {
-		return "<p><strong>" + this.city() + "</strong></p><p>" + this.state() + ", " + this.country() + "</p><p>Current temp: " + this.currentTemp() + "</p>" + this.radarMap();
+		return "<p><strong>" + this.city() + "</strong></p><p>" + this.state() + ", " + this.country() + "</p><p>Current temp: " + this.currentTemp() + "</p><img src='" + this.radarMap() + "'>";
 	},this);
 	this.hasOpenWindow = false;// Used to track if InfoWindow is opened at marker. Will allow us to manipulate InfoWindow open/close status during filtering
 	this.saveData = ko.computed(function() {
@@ -25,7 +25,8 @@ var LocationModel = function (marker) {
 			lng: this.lng(),
 			city: this.city(),
 			state: this.state(),
-			country: this.country()
+			country: this.country(),
+			radarSrc: this.radarMap()
 		}
 	},this);
 }
@@ -36,7 +37,9 @@ var locationViewModel = function() {
 	this.markerList = ko.observableArray([]);
 	this.saveAll = ko.observableArray([]);
 	this.selectedMarker = ko.observable();
-	
+	this.init = function() {
+		self.loadMapSrc();
+	}
     // Now we can do stuff in the DOM when a marker is selected, just bind to the "selectedMarker"
     this.selectMarker = function(currentMarker) {
     	self.selectedMarker().hasOpenWindow = false;
@@ -55,9 +58,25 @@ var locationViewModel = function() {
     	for (var i = 0; i < self.markerList().length; i++) {
     		arrSave.push(self.markerList()[i].saveData());
     	}
-    	console.log("Saving marker info to storage " + ko.toJSON(arrSave));
+    	localStorage.setItem('locationInfo',ko.toJSON(arrSave));
+    	console.log("Marker info saved to storage " + JSON.parse(localStorage.locationInfo));
     }
-    
+    this.loadMarkers = function () {// Load any saved locations and put them on the map
+    	if (!localStorage.locationInfo) {
+            localStorage.locationInfo = JSON.stringify([]);
+        }
+    	var storedInfo = JSON.parse(localStorage.locationInfo);
+    	for (var i = 0; i < storedInfo.length; i++) {
+    		console.log("Getting Location info for: " + storedInfo[i].city);
+    		var marker = new google.maps.Marker({position: {lat: storedInfo[i].lat, lng: storedInfo[i].lng}, map: self.map});
+    		var location = self.addLocation(marker);
+    		location.city(storedInfo[i].city);
+    		location.state(storedInfo[i].state);
+    		location.country(storedInfo[i].country);
+    		location.radarMap(storedInfo[i].radarSrc);
+    	}
+    	
+    }
     this.removeMarkers = function() {
     	console.log("Deleting all markers");
     	// This from Google: https://developers.google.com/maps/documentation/javascript/examples/marker-remove
@@ -65,6 +84,7 @@ var locationViewModel = function() {
     		self.markerList()[i].marker.setMap(null);
     	}
     	self.markerList([]);
+    	localStorage.locationInfo = JSON.stringify([]);
     }
     // Let's build out a simple filter for the options list here. We don't modify our model, just what appears in the options
     // This technique extrapolated from question found at http://stackoverflow.com/questions/23397975/knockout-live-search
@@ -109,23 +129,28 @@ var locationViewModel = function() {
     			      center: { lat: -34.397, lng: 150.644},
     			      zoom: 8
   	  		};
-  	  	    this.map = new google.maps.Map(document.getElementById('mainMap'), this.mapOptions);
+  	  	    self.map = new google.maps.Map(document.getElementById('mainMap'), this.mapOptions);
   	  		self.mapInfoWindow = new google.maps.InfoWindow();
-  	  	    google.maps.event.addListener(this.map, 'click', function(event) {
+  	  	    google.maps.event.addListener(self.map, 'click', function(event) {
   	  	    	var marker = new google.maps.Marker({position: event.latLng, map: self.map});
-  	  	    	var location = new LocationModel(marker);
-  	  	    	self.markerList.push(location);
+  	  	    	var location = self.addLocation(marker);
   	  	    	self.selectMarker(location);
-  	  	    	google.maps.event.addListener(marker, 'click', function(event) {
-  	  	    		self.selectMarker(location);// This sets the selectedMarker observable to be whichever marker we click on.
-  	  	    	})
   	  	     });
+  	  	    self.loadMarkers();
     	} catch (err) {
     		alert("We are having trouble loading the map. Please reload the page to try again");// this could be nicer ;)
     		console.log("Error: " + err);    		
     	}
 
     };
+    this.addLocation = function(marker) {
+    	var location = new LocationModel(marker);
+    	self.markerList.push(location);
+    	google.maps.event.addListener(marker, 'click', function(event) {
+    		self.selectMarker(location);// This sets the selectedMarker observable to be whichever marker we click on.
+    	})
+    	return location;
+    }
 
     /* --------
      Let's get simple location info and current weather radar map/ forecast from weather underground api when a marker is selected.
@@ -164,7 +189,7 @@ var locationViewModel = function() {
         			  }
         			  currentMarker.currentTemp(parsed_json['current_observation']['temp_f'] + "&deg; F");
         		      var radarUrl = "http://api.wunderground.com/api/d208634303ed569d/radar/image.gif?centerlat=" + currentMarker.lat() + "&centerlon=" + currentMarker.lng() + "&radius=100&width=100&height=100&newmaps=1";
-        		      currentMarker.radarMap('<img src="' + radarUrl + '">');
+        		      currentMarker.radarMap(radarUrl);
         		      self.mapInfoWindow.setContent(currentMarker.windowContent());// doing this here will cause window to update with new map/temp info, if any.
         		      self.mapInfoWindow.open(self.map,currentMarker.marker);
         		      currentMarker.hasOpenWindow = true;
@@ -186,5 +211,5 @@ var locationViewModel = function() {
 };
 var viewModel = new locationViewModel();
 ko.applyBindings(viewModel);
-window.onload = viewModel.loadMapSrc();
+window.onload = viewModel.init();
 console.log("app.js done.");
