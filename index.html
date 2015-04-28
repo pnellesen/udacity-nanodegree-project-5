@@ -36,14 +36,12 @@
 
 <div id="mainMap" class="col-md-12" data-bind="text: mapErrorTxt"></div><!-- Map Div here -->
 
-<div class="windowContainer"><!--  Hidden div to hold infoWindow content for each marker -->
+<div id="windowContainer" class="windowContainer"><!--  Hidden div to hold infoWindow content for each marker -->
 	<div class="windowContent" data-bind="with: selectedMarker">
 		<p><strong><span data-bind="text:city"></span></strong></p><p><span data-bind="text:state"></span>, <span data-bind="text:country"></span></p><p>Current temp: <span data-bind="text:currentTemp"></span></p>
 		<img data-bind="attr: {src:radarMap}">
-		<!--  Note about the next div: I cannot get the "click" binding to work when loading the infoWindow with the windowContent html via jQuery, regardless of if I use $parent, $root, or any other ko binding. onClick works exactly as I want, however. All other bindings work fine, and the filter works fine as well. -->
-		<div><button onClick="viewModel.saveSelectedMarker()">Save</button><button onClick="viewModel.removeSelectedMarker()">Remove</button></div>
-		
-	</div>	
+	</div>
+	<div id="buttonContainer"><button data-bind="click: saveSelectedMarker">Save</button><button data-bind="click: removeSelectedMarker">Remove</button></div>	
 </div>
 
 <!-- JS here. Using CDNs where possible -->

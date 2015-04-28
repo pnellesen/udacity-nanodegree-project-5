@@ -143,6 +143,12 @@ var locationViewModel = function() {
   	  		};
   	  	    self.map = new google.maps.Map(document.getElementById('mainMap'), this.mapOptions);
   	  		self.mapInfoWindow = new google.maps.InfoWindow();
+  	  		// The following used to bind button click events after infowindow loads:
+  	  		// from http://techcrawler.riedme.de/2012/09/14/google-maps-infowindow-with-knockout/
+	  	  	google.maps.event.addListener(self.mapInfoWindow, 'domready', function() {
+	  	  		ko.applyBindings(self, document.getElementById("buttonContainer"));
+	  	  	});
+  	  		
   	  	    google.maps.event.addListener(self.map, 'click', function(event) {
   	  	    	var marker = new google.maps.Marker({position: event.latLng, map: self.map});
   	  	    	var location = self.addLocation(marker);
