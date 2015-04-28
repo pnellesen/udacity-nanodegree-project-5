@@ -15,9 +15,7 @@ var LocationModel = function (marker) {
 		return this.city();
 	}, this);
 	this.radarMap = ko.observable(''); 
-	this.windowContent = ko.computed(function() {
-		return "<p><strong>" + this.city() + "</strong></p><p>" + this.state() + ", " + this.country() + "</p><p>Current temp: " + this.currentTemp() + "</p><img src='" + this.radarMap() + "'>";
-	},this);
+	this.windowContent = ko.observable('');// This will be used for filtering
 	this.hasOpenWindow = false;// Used to track if InfoWindow is opened at marker. Will allow us to manipulate InfoWindow open/close status during filtering
 	this.saveData = ko.computed(function() {
 		return {
@@ -26,7 +24,8 @@ var LocationModel = function (marker) {
 			city: this.city(),
 			state: this.state(),
 			country: this.country(),
-			radarSrc: this.radarMap()
+			radarSrc: this.radarMap(),
+			windowContent: this.windowContent()
 		}
 	},this);
 }
@@ -74,7 +73,9 @@ var locationViewModel = function() {
     		location.state(storedInfo[i].state);
     		location.country(storedInfo[i].country);
     		location.radarMap(storedInfo[i].radarSrc);
+    		location.windowContent(storedInfo[i].windowContent);
     	}
+    	
     	
     }
     this.removeMarkers = function() {
@@ -86,6 +87,17 @@ var locationViewModel = function() {
     	self.markerList([]);
     	localStorage.locationInfo = JSON.stringify([]);
     }
+    
+    this.removeSelectedMarker = function() {
+    	console.log("Removing marker: " + self.selectedMarker().city());
+    	self.selectedMarker().marker.setMap(null);
+    	self.markerList.remove(self.selectedMarker());
+    	
+    }
+    this.saveSelectedMarker = function() {
+    	console.log("Saving marker: " + self.selectedMarker().city() + " - Array index at: " + self.markerList.indexOf(self.selectedMarker()));
+    }
+    
     // Let's build out a simple filter for the options list here. We don't modify our model, just what appears in the options
     // This technique extrapolated from question found at http://stackoverflow.com/questions/23397975/knockout-live-search
     this.srchTxt = ko.observable('');
@@ -151,6 +163,9 @@ var locationViewModel = function() {
     	})
     	return location;
     }
+    this.setLocationContent = function(marker) {
+    	marker.windowContent(getWindowContent());
+    }
 
     /* --------
      Let's get simple location info and current weather radar map/ forecast from weather underground api when a marker is selected.
@@ -190,7 +205,8 @@ var locationViewModel = function() {
         			  currentMarker.currentTemp(parsed_json['current_observation']['temp_f'] + "&deg; F");
         		      var radarUrl = "http://api.wunderground.com/api/d208634303ed569d/radar/image.gif?centerlat=" + currentMarker.lat() + "&centerlon=" + currentMarker.lng() + "&radius=100&width=100&height=100&newmaps=1";
         		      currentMarker.radarMap(radarUrl);
-        		      self.mapInfoWindow.setContent(currentMarker.windowContent());// doing this here will cause window to update with new map/temp info, if any.
+        		      self.mapInfoWindow.setContent(getWindowContent());
+        		      self.setLocationContent(currentMarker);
         		      self.mapInfoWindow.open(self.map,currentMarker.marker);
         		      currentMarker.hasOpenWindow = true;
         		  },
@@ -213,3 +229,6 @@ var viewModel = new locationViewModel();
 ko.applyBindings(viewModel);
 window.onload = viewModel.init();
 console.log("app.js done.");
+function getWindowContent() {// Set a template in index.html to hold the window content for each marker. All DOM/Styling handled there.
+	return $('.windowContainer').html();
+}

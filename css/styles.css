@@ -38,6 +38,12 @@ z-index: 0;
 	padding-bottom:5px;
 }
 
+.windowContainer {
+	display:none;
+
+}
+
+
 button {
 	font-size:12px;
 	background:#FFFFFF;

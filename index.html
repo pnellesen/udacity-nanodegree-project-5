@@ -21,7 +21,6 @@
 	</div>
 	<div class="row">
 		<div class="col-md-6 headerDiv"><div class="filterBox">Filter: <input type="text" data-bind="value: srchTxt, valueUpdate: 'keyup'" autocomplete="off"/><span class="textClear" title="Clear filter" data-bind="click: clearFilter;">x</span></div></div>
-		<!-- <div class="col-sm-3"><span>Selected: </span><span data-bind="text:selectedMarker() ? selectedMarker().locText : 'None'"></span></div> -->
 		<div class="col-md-6 headerDiv" data-bind="visible: markerList().length > 0">
 			Your Markers:
 			<select id="marker-list" 
@@ -34,11 +33,20 @@
 		</div>
 	</div>
 </div>
-<div id="mainMap" class="col-md-12" data-bind="text: mapErrorTxt"></div>
 
+<div id="mainMap" class="col-md-12" data-bind="text: mapErrorTxt"></div><!-- Map Div here -->
+
+<div class="windowContainer"><!--  Hidden div to hold infoWindow content for each marker -->
+	<div class="windowContent" data-bind="with: selectedMarker">
+		<p><strong><span data-bind="text:city"></span></strong></p><p><span data-bind="text:state"></span>, <span data-bind="text:country"></span></p><p>Current temp: <span data-bind="text:currentTemp"></span></p>
+		<img data-bind="attr: {src:radarMap}">
+		<!--  Note about the next div: I cannot get the "click" binding to work when loading the infoWindow with the windowContent html via jQuery, regardless of if I use $parent, $root, or any other ko binding. onClick works exactly as I want, however. All other bindings work fine, and the filter works fine as well. -->
+		<div><button onClick="viewModel.saveSelectedMarker()">Save</button><button onClick="viewModel.removeSelectedMarker()">Remove</button></div>
+		
+	</div>	
+</div>
 
 <!-- JS here. Using CDNs where possible -->
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-min.js"></script>
 <script type="text/javascript" data-bind="attr: {src: mapSrc}"></script><!-- our google map script will load here via Knockout observable -->
 <script src="js/app.js"></script>
