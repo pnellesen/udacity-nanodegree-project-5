@@ -208,7 +208,7 @@ var locationViewModel = function() {
             			  currentMarker.state(parsed_json['current_observation']['display_location']['state_name']);
             			  currentMarker.country(parsed_json['current_observation']['display_location']['country_iso3166']);      				  
         			  }
-        			  currentMarker.currentTemp(parsed_json['current_observation']['temp_f'] + "&deg; F");
+        			  currentMarker.currentTemp(parsed_json['current_observation']['temp_f']);
         		      var radarUrl = "http://api.wunderground.com/api/d208634303ed569d/radar/image.gif?centerlat=" + currentMarker.lat() + "&centerlon=" + currentMarker.lng() + "&radius=100&width=100&height=100&newmaps=1";
         		      currentMarker.radarMap(radarUrl);
         		      self.mapInfoWindow.setContent(getWindowContent());

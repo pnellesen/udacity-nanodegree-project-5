@@ -38,7 +38,7 @@
 
 <div id="windowContainer" class="windowContainer"><!--  Hidden div to hold infoWindow content for each marker -->
 	<div class="windowContent" data-bind="with: selectedMarker">
-		<p><strong><span data-bind="text:city"></span></strong></p><p><span data-bind="text:state"></span>, <span data-bind="text:country"></span></p><p>Current temp: <span data-bind="text:currentTemp"></span></p>
+		<p><strong><span data-bind="text:city"></span></strong></p><p><span data-bind="text:state"></span>, <span data-bind="text:country"></span></p><p>Current temp: <span data-bind="text:currentTemp"></span>&deg; F</p>
 		<img data-bind="attr: {src:radarMap}">
 	</div>
 	<div id="buttonContainer"><button data-bind="click: saveSelectedMarker">Save</button><button data-bind="click: removeSelectedMarker">Remove</button></div>	
