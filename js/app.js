@@ -74,6 +74,8 @@ var locationViewModel = function() {
     		location.country(storedInfo[i].country);
     		location.radarMap(storedInfo[i].radarSrc);
     		location.windowContent(storedInfo[i].windowContent);
+    		location.icon('images/icn_save_small.png');
+    		marker.setIcon(location.icon());
     	}
     	
     	
@@ -96,6 +98,7 @@ var locationViewModel = function() {
     }
     this.saveSelectedMarker = function() {
     	console.log("Saving marker: " + self.selectedMarker().city() + " - Array index at: " + self.markerList.indexOf(self.selectedMarker()));
+    	self.selectedMarker().marker.setIcon('images/icn_save_small.png');
     }
     
     // Let's build out a simple filter for the options list here. We don't modify our model, just what appears in the options
