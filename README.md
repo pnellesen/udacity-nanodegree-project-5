@@ -12,3 +12,4 @@ Some useful urls for this project:
 - observable array tips (including a filter): http://www.strathweb.com/2012/07/knockout-js-pro-tips-working-with-observable-arrays/
 - Simple Live Search example, using ko's "ArrayFilter" method: http://stackoverflow.com/questions/23397975/knockout-live-search
 - Overview of Knockout utility functions: http://www.knockmeout.net/2011/04/utility-functions-in-knockoutjs.html 
+- To bind click events in content loaded in a Google InfoWindow http://techcrawler.riedme.de/2012/09/14/google-maps-infowindow-with-knockout/
