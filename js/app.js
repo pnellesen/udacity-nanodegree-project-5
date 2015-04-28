@@ -144,7 +144,7 @@ var locationViewModel = function() {
   	  	    self.map = new google.maps.Map(document.getElementById('mainMap'), this.mapOptions);
   	  		self.mapInfoWindow = new google.maps.InfoWindow();
   	  		// The following used to bind button click events after infowindow loads:
-  	  		// from http://techcrawler.riedme.de/2012/09/14/google-maps-infowindow-with-knockout/
+  	  		// extrapolated from http://techcrawler.riedme.de/2012/09/14/google-maps-infowindow-with-knockout/
 	  	  	google.maps.event.addListener(self.mapInfoWindow, 'domready', function() {
 	  	  		ko.applyBindings(self, document.getElementById("buttonContainer"));
 	  	  	});
@@ -170,7 +170,7 @@ var locationViewModel = function() {
     	return location;
     }
     this.setLocationContent = function(marker) {
-    	marker.windowContent(getWindowContent());
+    	marker.windowContent(getMarkerContent());
     }
 
     /* --------
@@ -235,6 +235,11 @@ var viewModel = new locationViewModel();
 ko.applyBindings(viewModel);
 window.onload = viewModel.init();
 console.log("app.js done.");
-function getWindowContent() {// Set a template in index.html to hold the window content for each marker. All DOM/Styling handled there.
-	return $('.windowContainer').html();
+
+// DOM manipulation/reading functions here. Call from ViewModel to enforce separation of concerns
+function getMarkerContent() {
+	return $('.windowContent').html();// Only get marker-specific content.
+}
+function getWindowContent() {
+	return $('.windowContainer').html();// Get the content for the whole window, including buttons
 }
