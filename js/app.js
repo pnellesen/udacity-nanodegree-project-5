@@ -14,7 +14,8 @@ var LocationModel = function (marker) {
 	this.locText = ko.computed(function() {
 		return this.city();
 	}, this);
-	this.radarMap = ko.observable(''); 
+	this.radarMap = ko.observable('');
+	this.isSaved = ko.observable('');
 	this.windowContent = ko.observable('');// This will be used for filtering
 	this.hasOpenWindow = false;// Used to track if InfoWindow is opened at marker. Will allow us to manipulate InfoWindow open/close status during filtering
 	this.saveData = ko.computed(function() {
@@ -36,6 +37,8 @@ var locationViewModel = function() {
 	this.markerList = ko.observableArray([]);
 	this.saveAll = ko.observableArray([]);
 	this.selectedMarker = ko.observable();
+	this.saveImage = 'images/icn_save_small.png';
+	this.storageObj = 'locationInfo';
 	this.init = function() {
 		self.loadMapSrc();
 	}
@@ -52,14 +55,6 @@ var locationViewModel = function() {
     		self.selectMarker(self.selectedMarker());
     	}
     };
-    this.saveMarkers = function() {
-    	var arrSave = [];
-    	for (var i = 0; i < self.markerList().length; i++) {
-    		arrSave.push(self.markerList()[i].saveData());
-    	}
-    	localStorage.setItem('locationInfo',ko.toJSON(arrSave));
-    	console.log("Marker info saved to storage " + JSON.parse(localStorage.locationInfo));
-    }
     this.loadMarkers = function () {// Load any saved locations and put them on the map
     	if (!localStorage.locationInfo) {
             localStorage.locationInfo = JSON.stringify([]);
@@ -74,32 +69,53 @@ var locationViewModel = function() {
     		location.country(storedInfo[i].country);
     		location.radarMap(storedInfo[i].radarSrc);
     		location.windowContent(storedInfo[i].windowContent);
-    		location.icon('images/icn_save_small.png');
+    		location.isSaved(true);
+    		location.icon(self.saveImage);
+    		self.saveAll.push(location.saveData());
     		marker.setIcon(location.icon());
     	}
-    	
-    	
+   	
     }
-    this.removeMarkers = function() {
-    	console.log("Deleting all markers");
+    // Save/Remove Functions here
+    this.saveAllMarkers = function() {
+    	for (var i = 0; i < self.markerList().length; i++) {
+    		if (self.saveAll.indexOf(self.markerList()[i].saveData()) < 0) {
+    			self.markerList()[i].icon(self.saveImage);
+    			self.saveAll.push(self.markerList()[i].saveData())
+    		}
+    	}
+    	localStorage.setItem(self.storageObj,ko.toJSON(self.saveAll()));
+    }
+    this.saveSelectedMarker = function() {
+    	if (self.saveAll.indexOf(self.selectedMarker().saveData()) < 0) {
+        	self.selectedMarker().marker.setIcon(self.saveImage);
+        	self.selectedMarker().isSaved(true);
+    		self.saveAll.push(self.selectedMarker().saveData());
+    		localStorage.setItem(self.storageObj,ko.toJSON(self.saveAll()));
+    	}
+    }
+    this.removeAllMarkers = function() {
     	// This from Google: https://developers.google.com/maps/documentation/javascript/examples/marker-remove
     	for (var i = 0; i < self.markerList().length; i++) {
     		self.markerList()[i].marker.setMap(null);
     	}
     	self.markerList([]);
+    	self.saveAll([]);
     	localStorage.locationInfo = JSON.stringify([]);
     }
-    
     this.removeSelectedMarker = function() {
-    	console.log("Removing marker: " + self.selectedMarker().city());
     	self.selectedMarker().marker.setMap(null);
+    	if (self.saveAll.indexOf(self.selectedMarker().saveData()) >= 0) {// If it's been saved, remove it from storage
+    		self.saveAll.remove(self.selectedMarker().saveData());
+    		localStorage.setItem(self.storageObj,ko.toJSON(self.saveAll()));
+    	}
     	self.markerList.remove(self.selectedMarker());
-    	
     }
-    this.saveSelectedMarker = function() {
-    	console.log("Saving marker: " + self.selectedMarker().city() + " - Array index at: " + self.markerList.indexOf(self.selectedMarker()));
-    	self.selectedMarker().marker.setIcon('images/icn_save_small.png');
-    }
+
+    this.notSaved = ko.computed(function() {
+    	return (self.selectedMarker()) ? !self.selectedMarker().isSaved():true;
+    });
+    // End Save/Remove functions 
     
     // Let's build out a simple filter for the options list here. We don't modify our model, just what appears in the options
     // This technique extrapolated from question found at http://stackoverflow.com/questions/23397975/knockout-live-search
@@ -136,7 +152,7 @@ var locationViewModel = function() {
     	
     };
     
-    this.loadMap = function() {
+    this.loadMap = function() {// Callback function for the the Google Map script. Used for asynchronous map loads
     	console.log("loading map");
     	// Add error checking here to insure that "window.google" actually exists - if the src url is malformed or for some reason breaks.
     	try {
@@ -157,7 +173,7 @@ var locationViewModel = function() {
   	  	    	var location = self.addLocation(marker);
   	  	    	self.selectMarker(location);
   	  	     });
-  	  	    self.loadMarkers();
+  	  	    self.loadMarkers();// load any saved markers from localStorage. Only want to run if no problems loading map
     	} catch (err) {
     		alert("We are having trouble loading the map. Please reload the page to try again");// this could be nicer ;)
     		console.log("Error: " + err);    		
@@ -206,6 +222,14 @@ var locationViewModel = function() {
         		  url : "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json",
         		  dataType : "jsonp",
         		  success : function(parsed_json) {
+        			  var doSave = false;
+        			  if (self.saveAll.indexOf(currentMarker.saveData()) >=0 ) {
+        				  // It's possible the saveData object will change when we make the call to WU (ex: current_temp)
+        				  // Need to make sure that if it was previously saved to localStorage
+        				  // we update localStorage as well 
+        				  self.saveAll.remove(currentMarker.saveData());
+        				  doSave = true;
+        			  }
         			  if (currentMarker.city() == '') {// No need to update "static" location info every time 
             			  currentMarker.city(parsed_json['current_observation']['display_location']['city']);
             			  currentMarker.state(parsed_json['current_observation']['display_location']['state_name']);
@@ -218,6 +242,10 @@ var locationViewModel = function() {
         		      self.setLocationContent(currentMarker);
         		      self.mapInfoWindow.open(self.map,currentMarker.marker);
         		      currentMarker.hasOpenWindow = true;
+        		      if (doSave) {
+        		    	  self.saveAll.push(currentMarker.saveData());
+        		    	  localStorage.setItem(self.storageObj,ko.toJSON(self.saveAll()));
+        		      }
         		  },
         		  error: function() {
         			  console.log("Ajax error thrown");
