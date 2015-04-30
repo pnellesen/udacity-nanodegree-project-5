@@ -26,7 +26,7 @@
 					   value:selectedMarker,
 					    event:{ change: listChange}">
 			</select>
-			<button title="Save list to local storage" data-bind="click: saveAllMarkers;">Save</button><button title="Clear all markers" data-bind="click: removeAllMarkers">Clear</button>
+			<button title="Save list to local storage" data-bind="click: saveAllMarkers;">Save</button><button title="Clear all markers from map and storage" data-bind="click: removeAllMarkers">Clear</button>
 		</div>
 	</div>
 </div>
@@ -38,7 +38,7 @@
 		<p><strong><span data-bind="text:city"></span></strong></p><p><span data-bind="text:state"></span>, <span data-bind="text:country"></span></p><p>Current temp: <span data-bind="text:currentTemp"></span>&deg; F</p>
 		<img data-bind="attr: {src:radarMap}">
 	</div>
-	<div id="buttonContainer"><button data-bind="click: saveSelectedMarker, visible: notSaved">Save</button><button data-bind="click: removeSelectedMarker">Remove</button></div>	
+	<div id="buttonContainer"><button title="Save this location" data-bind="click: saveSelectedMarker, visible: notSaved">Save</button><button title="Remove this location from map and storage" data-bind="click: removeSelectedMarker">Remove</button></div>	
 </div>
 
 <!-- JS here. Using CDNs where possible -->
