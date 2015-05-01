@@ -1,5 +1,3 @@
-//This should hold location information for each marker, in a format compatible with Google Map API
-var locationData = [{}];
 var LocationModel = function (marker) {
 	var self = this;
 	this.marker = marker;
@@ -39,10 +37,40 @@ var locationViewModel = function() {
 	this.selectedMarker = ko.observable();
 	this.saveImage = 'images/icn_save_small.png';
 	this.storageObj = 'locationInfo';
+	this.defaultLat = ko.observable(-34.397);
+	this.defaultLng = ko.observable(150.644);
 	this.init = function() {
 		self.loadMapSrc();
 	}
-    // Now we can do stuff in the DOM when a marker is selected, just bind to the "selectedMarker"
+	this.loadMarkers = function () {// Load any saved locations and put them on the map
+    	if (!localStorage.locationInfo) {
+            localStorage.locationInfo = JSON.stringify([]);
+        }
+    	if (!localStorage.wuLastUpdated) {
+    		localStorage.wuLastUpdated = JSON.stringify([]);
+    	}
+    	self.arrHitTimes = JSON.parse(localStorage.wuLastUpdated);
+    	var storedInfo = JSON.parse(localStorage.locationInfo);
+    	for (var i = 0; i < storedInfo.length; i++) {
+    		console.log("Getting Location info for: " + storedInfo[i].city);
+    		var marker = new google.maps.Marker({position: {lat: storedInfo[i].lat, lng: storedInfo[i].lng}, map: self.map});
+    		var location = self.addLocation(marker);
+    		location.lat(storedInfo[i].lat);
+    		location.lng(storedInfo[i].lng);
+    		location.city(storedInfo[i].city);
+    		location.state(storedInfo[i].state);
+    		location.country(storedInfo[i].country);
+    		location.radarMap(storedInfo[i].radarSrc);
+    		location.windowContent(storedInfo[i].windowContent);
+    		location.isSaved(true);
+    		location.icon(self.saveImage);
+    		self.saveAll.push(location.saveData());
+    		marker.setIcon(location.icon());
+    	}
+    	if (self.markerList().length > 0) self.selectMarker(self.markerList()[0]);
+	}
+	
+	// Now we can do stuff in the DOM when a marker is selected, just bind to the "selectedMarker"
     this.selectMarker = function(currentMarker) {
     	self.selectedMarker().hasOpenWindow = false;
     	self.mapInfoWindow.close();
@@ -55,32 +83,14 @@ var locationViewModel = function() {
     		self.selectMarker(self.selectedMarker());
     	}
     };
-    this.loadMarkers = function () {// Load any saved locations and put them on the map
-    	if (!localStorage.locationInfo) {
-            localStorage.locationInfo = JSON.stringify([]);
-        }
-    	var storedInfo = JSON.parse(localStorage.locationInfo);
-    	for (var i = 0; i < storedInfo.length; i++) {
-    		console.log("Getting Location info for: " + storedInfo[i].city);
-    		var marker = new google.maps.Marker({position: {lat: storedInfo[i].lat, lng: storedInfo[i].lng}, map: self.map});
-    		var location = self.addLocation(marker);
-    		location.city(storedInfo[i].city);
-    		location.state(storedInfo[i].state);
-    		location.country(storedInfo[i].country);
-    		location.radarMap(storedInfo[i].radarSrc);
-    		location.windowContent(storedInfo[i].windowContent);
-    		location.isSaved(true);
-    		location.icon(self.saveImage);
-    		self.saveAll.push(location.saveData());
-    		marker.setIcon(location.icon());
-    	}
-   	
-    }
+   
     // Save/Remove Functions here
     this.saveAllMarkers = function() {
     	for (var i = 0; i < self.markerList().length; i++) {
     		if (self.saveAll.indexOf(self.markerList()[i].saveData()) < 0) {
     			self.markerList()[i].icon(self.saveImage);
+    			self.markerList()[i].isSaved(true);
+    			self.markerList()[i].marker.setIcon(self.markerList()[i].icon());
     			self.saveAll.push(self.markerList()[i].saveData())
     		}
     	}
@@ -157,7 +167,7 @@ var locationViewModel = function() {
     	// Add error checking here to insure that "window.google" actually exists - if the src url is malformed or for some reason breaks.
     	try {
     		this.mapOptions = {
-    			      center: { lat: -34.397, lng: 150.644},
+    			      center: { lat: self.defaultLat(), lng: self.defaultLng()},
     			      zoom: 8
   	  		};
   	  	    self.map = new google.maps.Map(document.getElementById('mainMap'), this.mapOptions);
@@ -255,6 +265,7 @@ var locationViewModel = function() {
             	});    		
     		    self.arrHitTimes.push(new Date().getTime());
     		    console.log("New timestamp array: " + self.arrHitTimes);
+    		    localStorage.setItem('wuLastUpdated',ko.toJSON(self.arrHitTimes));
     	} else {
     		// If we've previously pulled info from WU, just use the old info while waiting for refresh
     		if (currentMarker.city() != '') self.mapInfoWindow.open(self.map,currentMarker.marker);

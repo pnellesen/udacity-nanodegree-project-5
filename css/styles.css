@@ -50,3 +50,11 @@ button {
 	border:1px solid #000000;
 	margin:3px;
 }
+
+button.btn_save:hover {
+	background-color:green;
+}
+button.btn_delete:hover {
+	color:white;
+	background-color:red;
+}
