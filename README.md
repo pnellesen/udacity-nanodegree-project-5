@@ -17,18 +17,16 @@ Other features:
 Installation notes:
 
 1. You will need a Google Map API key and a Weather Underground key to run this app. Update the following fields in "js/app.js" with each:
-
-- "this.google_key"
-- "this.wu_key"
+	- "this.google_key"
+	- "this.wu_key"
 
 2. Note that this version utilizes the development version of the Weather Underground API, a free API which has a limit of 10 calls/minute.
 
 3. Copy the following to your webserver:
-
-- index.html
-- js/app.js
-- images/icn_save_small.png
-- css/styles.css
+	- index.html
+	- js/app.js
+	- images/icn_save_small.png
+	- css/styles.css
 	
 	
 Some useful urls for this project:
