@@ -37,6 +37,8 @@ var locationViewModel = function() {
 	this.selectedMarker = ko.observable();
 	this.saveImage = 'images/icn_save_small.png';
 	this.storageObj = 'locationInfo';
+	this.wu_key = 'd208634303ed569d';
+	this.google_key = 'AIzaSyDWLOC6K3kwBnBnp_15oNgkuTjzZ87Fl_I';
 	this.defaultLat = ko.observable(-34.397);
 	this.defaultLng = ko.observable(150.644);
 	this.init = function() {
@@ -155,7 +157,7 @@ var locationViewModel = function() {
     this.loadMapSrc = function() {
     	console.log("Fetching map src");
     	try {
-    		self.mapSrc('https://maps.googleapis.com/maps/api/js?key=AIzaSyDWLOC6K3kwBnBnp_15oNgkuTjzZ87Fl_I&callback=viewModel.loadMap');	
+    		self.mapSrc('https://maps.googleapis.com/maps/api/js?key=' + self.google_key + '&callback=viewModel.loadMap');	
     	} catch (err) {
     		console.log("error getting src");
     	}
@@ -229,7 +231,7 @@ var locationViewModel = function() {
 		if (makeCall) {
     		console.log("url: " + "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json");
     		$.ajax({
-        		  url : "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json",
+        		  url : "http://api.wunderground.com/api/" + self.wu_key + "/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json",
         		  dataType : "jsonp",
         		  success : function(parsed_json) {
         			  var doSave = false;
@@ -246,7 +248,7 @@ var locationViewModel = function() {
             			  currentMarker.country(parsed_json['current_observation']['display_location']['country_iso3166']);      				  
         			  }
         			  currentMarker.currentTemp(parsed_json['current_observation']['temp_f']);
-        		      var radarUrl = "http://api.wunderground.com/api/d208634303ed569d/radar/image.gif?centerlat=" + currentMarker.lat() + "&centerlon=" + currentMarker.lng() + "&radius=100&width=100&height=100&newmaps=1";
+        		      var radarUrl = "http://api.wunderground.com/api/" + self.wu_key + "/radar/image.gif?centerlat=" + currentMarker.lat() + "&centerlon=" + currentMarker.lng() + "&radius=100&width=100&height=100&newmaps=1";
         		      currentMarker.radarMap(radarUrl);
         		      self.mapInfoWindow.setContent(getWindowContent());
         		      self.setLocationContent(currentMarker);
