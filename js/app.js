@@ -42,7 +42,8 @@ var locationViewModel = function() {
 	this.defaultLat = ko.observable(-34.397);
 	this.defaultLng = ko.observable(150.644);
 	this.init = function() {
-		self.loadMapSrc();
+		//self.loadMapSrc();
+		loadGoogleMap();
 	}
 	this.loadMarkers = function () {// Load any saved locations and put them on the map
     	if (!localStorage.locationInfo) {
@@ -153,17 +154,6 @@ var locationViewModel = function() {
 	// All the map functions in ViewModel
     this.mapInfoWindow;// Only set up one InfoWindow that will be shared by all markers, per Google documentation
     this.mapErrorTxt = ko.observable('');
-    this.mapSrc = ko.observable('');
-    this.loadMapSrc = function() {
-    	console.log("Fetching map src");
-    	try {
-    		self.mapSrc('https://maps.googleapis.com/maps/api/js?key=' + self.google_key + '&callback=viewModel.loadMap');	
-    	} catch (err) {
-    		console.log("error getting src");
-    	}
-    	
-    };
-    
     this.loadMap = function() {// Callback function for the the Google Map script. Used for asynchronous map loads
     	console.log("loading map");
     	// Add error checking here to insure that "window.google" actually exists - if the src url is malformed or for some reason breaks.
@@ -286,4 +276,15 @@ function getMarkerContent() {
 }
 function getWindowContent() {
 	return $('.windowContainer').html();// Get the content for the whole window, including buttons
+}
+function loadGoogleMap() {// Load map asynchronously - See Google Documentation.
+	console.log("Fetching map src");
+	try {
+		 var script = document.createElement('script');
+		  script.type = 'text/javascript';
+		  script.src = 'https://maps.googleapis.com/maps/api/js?key=' + viewModel.google_key + '&callback=viewModel.loadMap'
+		  document.body.appendChild(script);
+	} catch (err) {
+		console.log("error getting src");
+	}
 }
