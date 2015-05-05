@@ -1,5 +1,8 @@
 html {height:100%}
-body {height:100%}
+body {
+	height:100%;
+	overflow: hidden;
+}
 .container-fluid {
 	z-index:100;
 	position:relative;
@@ -7,15 +10,25 @@ body {height:100%}
 }
 
 #mainMap {
-height: 100%;
-position: absolute;
-top: 0;
-bottom: -200px;
-left: 0;
-right: 0;
-z-index: 0;
+	height: 100%;
+	position: absolute;
+	top: 96px;
+	bottom: -200px;
+	left: 0;
+	right: 0;
+	z-index: 0;
 }
 
+@media (min-width:992px) {
+	#mainMap {
+		top: 64px;
+	}
+}
+
+.mapImg {
+	height:100px;
+	width:100px;
+}
 .topRow {
 	text-align:center;
 	font-size:16px;
