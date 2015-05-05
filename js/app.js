@@ -27,7 +27,7 @@ var LocationModel = function (marker) {
 			windowContent: this.windowContent()
 		}
 	},this);
-}
+};
 
 var locationViewModel = function() {
 	var self = this;
@@ -44,7 +44,7 @@ var locationViewModel = function() {
 	this.init = function() {
 		//self.loadMapSrc();
 		loadGoogleMap();
-	}
+	};
 	this.loadMarkers = function () {// Load any saved locations and put them on the map
     	if (!localStorage.locationInfo) {
             localStorage.locationInfo = JSON.stringify([]);
@@ -71,7 +71,7 @@ var locationViewModel = function() {
     		marker.setIcon(location.icon());
     	}
     	if (self.markerList().length > 0) self.selectMarker(self.markerList()[0]);
-	}
+	};
 	
 	// Now we can do stuff in the DOM when a marker is selected, just bind to the "selectedMarker"
     this.selectMarker = function(currentMarker) {
@@ -99,7 +99,7 @@ var locationViewModel = function() {
     		}
     	}
     	localStorage.setItem(self.storageObj,ko.toJSON(self.saveAll()));
-    }
+    };
     this.saveSelectedMarker = function() {
     	if (self.saveAll.indexOf(self.selectedMarker().saveData()) < 0) {
         	self.selectedMarker().marker.setIcon(self.saveImage);
@@ -107,7 +107,7 @@ var locationViewModel = function() {
     		self.saveAll.push(self.selectedMarker().saveData());
     		localStorage.setItem(self.storageObj,ko.toJSON(self.saveAll()));
     	}
-    }
+    };
     this.removeAllMarkers = function() {
     	// This from Google: https://developers.google.com/maps/documentation/javascript/examples/marker-remove
     	for (var i = 0; i < self.markerList().length; i++) {
@@ -116,7 +116,7 @@ var locationViewModel = function() {
     	self.markerList([]);
     	self.saveAll([]);
     	localStorage.locationInfo = JSON.stringify([]);
-    }
+    };
     this.removeSelectedMarker = function() {
     	self.selectedMarker().marker.setMap(null);
     	if (self.saveAll.indexOf(self.selectedMarker().saveData()) >= 0) {// If it's been saved, remove it from storage
@@ -124,7 +124,7 @@ var locationViewModel = function() {
     		localStorage.setItem(self.storageObj,ko.toJSON(self.saveAll()));
     	}
     	self.markerList.remove(self.selectedMarker());
-    }
+    };
 
     this.notSaved = ko.computed(function() {
     	return (self.selectedMarker()) ? !self.selectedMarker().isSaved():true;
@@ -136,7 +136,7 @@ var locationViewModel = function() {
     this.srchTxt = ko.observable('');
     this.clearFilter = function() {
     	self.srchTxt('');
-    }
+    };
     this.visibleOptions = ko.computed(function() {
          if (self.markerList().length > 0) {//No need to run array filter if we don't have any markers
         	 return ko.utils.arrayFilter(self.markerList(), function(item) {
@@ -190,10 +190,10 @@ var locationViewModel = function() {
     		self.selectMarker(location);// This sets the selectedMarker observable to be whichever marker we click on.
     	})
     	return location;
-    }
+    };
     this.setLocationContent = function(marker) {
     	marker.windowContent(getMarkerContent());
-    }
+    };
 
     /* --------
      Let's get simple location info and current weather radar map/ forecast from weather underground api when a marker is selected.
@@ -285,10 +285,10 @@ console.log("app.js done.");
 // DOM manipulation/reading functions here. Call from ViewModel to enforce separation of concerns
 function getMarkerContent() {
 	return $('.windowContent').html();// Only get marker-specific content.
-}
+};
 function getWindowContent() {
 	return $('.windowContainer').html();// Get the content for the whole window, including buttons
-}
+};
 function loadGoogleMap() {// Load map asynchronously - See Google Documentation.
 	console.log("Fetching map src");
 	try {
@@ -299,4 +299,4 @@ function loadGoogleMap() {// Load map asynchronously - See Google Documentation.
 	} catch (err) {
 		console.log("error getting src");
 	}
-}
+};
