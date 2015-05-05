@@ -263,7 +263,7 @@ var locationViewModel = function() {
         		  },
         		  error: function() {
         			  console.log("Ajax error thrown");
-        		  };
+        		  }
             	}).fail(function(jqXHR, textStatus) {
             		console.log("Ajax failed: " + textStatus);
             	});    		
