@@ -41,3 +41,4 @@ Some useful urls for this project:
 - Simple Live Search example, using ko's "ArrayFilter" method: http://stackoverflow.com/questions/23397975/knockout-live-search
 - Overview of Knockout utility functions: http://www.knockmeout.net/2011/04/utility-functions-in-knockoutjs.html 
 - To bind click events in content loaded in a Google InfoWindow http://techcrawler.riedme.de/2012/09/14/google-maps-infowindow-with-knockout/
+- Method to handle "no internet connection" problems in $.ajax() calls using jsonp: http://stackoverflow.com/questions/309953/how-do-i-catch-jquery-getjson-or-ajax-with-datatype-set-to-jsonp-error-w/310084#310084

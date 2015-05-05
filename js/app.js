@@ -77,9 +77,10 @@ var locationViewModel = function() {
     this.selectMarker = function(currentMarker) {
     	self.selectedMarker().hasOpenWindow = false;
     	self.mapInfoWindow.close();
-    	self.selectedMarker(currentMarker);
+    	
     	self.map.setCenter(currentMarker.marker.getPosition());
     	self.getLocationInfo(currentMarker);// Will update window content after ajax call
+    	self.selectedMarker(currentMarker);
     };
     this.listChange = function(obj, event) {
     	if (event.originalEvent) {// Only pop info window if changed by user.
@@ -217,13 +218,24 @@ var locationViewModel = function() {
 			self.arrHitTimes.shift();
 		}
 		/*--- End throttling check --- */
-
+		
 		if (makeCall) {
-    		console.log("url: " + "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json");
-    		$.ajax({
+			console.log("url: " + "http://api.wunderground.com/api/d208634303ed569d/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json");
+			
+			// Set a timeout of 3 seconds for accessing WU.
+			// See http://stackoverflow.com/questions/309953/how-do-i-catch-jquery-getjson-or-ajax-with-datatype-set-to-jsonp-error-w/310084#310084
+			var wuSuccess = false;
+			var wuTimeout = setTimeout(function() {
+				console.log("Got to timeout");
+				if (!wuSuccess) alert("There was a problem retrieving location information from the Weather Underground.\nPlease check your internet connection and try again.");
+			}, 3000);
+    		
+			$.ajax({
         		  url : "http://api.wunderground.com/api/" + self.wu_key + "/features/conditions/q/" + currentMarker.lat() + "," + currentMarker.lng() + ".json",
         		  dataType : "jsonp",
         		  success : function(parsed_json) {
+        			  clearTimeout(wuTimeout);// If we make the call, clear the timeout.
+        			  wuSuccess = true;
         			  var doSave = false;
         			  if (self.saveAll.indexOf(currentMarker.saveData()) >=0 ) {
         				  // It's possible the saveData object will change when we make the call to WU (ex: current_temp)
