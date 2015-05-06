@@ -62,6 +62,17 @@ body {
 
 }
 
+/* Resize infowindow for landscape-mode devices */
+@media (max-height: 400px) {
+	.allWindow {
+		height:150px;
+	}	
+}
+@media (max-height: 360px) {
+	.allWindow {
+		height:120px;
+	}	
+}
 
 button {
 	font-size:12px;
