@@ -25,7 +25,7 @@ var LocationModel = function (marker) {
 			country: this.country(),
 			radarSrc: this.radarMap(),
 			windowContent: this.windowContent()
-		}
+		};
 	},this);
 };
 
@@ -95,7 +95,7 @@ var locationViewModel = function() {
     			self.markerList()[i].icon(self.saveImage);
     			self.markerList()[i].isSaved(true);
     			self.markerList()[i].marker.setIcon(self.markerList()[i].icon());
-    			self.saveAll.push(self.markerList()[i].saveData())
+    			self.saveAll.push(self.markerList()[i].saveData());
     		}
     	}
     	localStorage.setItem(self.storageObj,ko.toJSON(self.saveAll()));
@@ -153,7 +153,7 @@ var locationViewModel = function() {
     });
 	
 	// All the map functions in ViewModel
-    this.mapInfoWindow;// Only set up one InfoWindow that will be shared by all markers, per Google documentation
+    this.mapInfoWindow = '';// Only set up one InfoWindow that will be shared by all markers, per Google documentation
     this.mapErrorTxt = ko.observable('');
     this.loadMap = function() {// Callback function for the the Google Map script. Used for asynchronous map loads
     	console.log("loading map");
@@ -188,7 +188,7 @@ var locationViewModel = function() {
     	self.markerList.push(location);
     	google.maps.event.addListener(marker, 'click', function(event) {
     		self.selectMarker(location);// This sets the selectedMarker observable to be whichever marker we click on.
-    	})
+    	});
     	return location;
     };
     this.setLocationContent = function(marker) {
@@ -244,12 +244,12 @@ var locationViewModel = function() {
         				  self.saveAll.remove(currentMarker.saveData());
         				  doSave = true;
         			  }
-        			  if (currentMarker.city() == '') {// No need to update "static" location info every time 
-            			  currentMarker.city(parsed_json['current_observation']['display_location']['city']);
-            			  currentMarker.state(parsed_json['current_observation']['display_location']['state_name']);
-            			  currentMarker.country(parsed_json['current_observation']['display_location']['country_iso3166']);      				  
+        			  if (currentMarker.city() === '') {// No need to update "static" location info every time 
+        				currentMarker.city(parsed_json.current_observation.display_location.city);
+                  		currentMarker.state(parsed_json.current_observation.display_location.state_name);
+                  		currentMarker.country(parsed_json.current_observation.display_location.country_iso3166);
         			  }
-        			  currentMarker.currentTemp(parsed_json['current_observation']['temp_f']);
+        			  currentMarker.currentTemp(parsed_json.current_observation.temp_f);
         		      var radarUrl = "http://api.wunderground.com/api/" + self.wu_key + "/radar/image.gif?centerlat=" + currentMarker.lat() + "&centerlon=" + currentMarker.lng() + "&radius=100&width=100&height=100&newmaps=1";
         		      currentMarker.radarMap(radarUrl);
         		      self.mapInfoWindow.setContent(getWindowContent());
@@ -272,7 +272,7 @@ var locationViewModel = function() {
     		    localStorage.setItem('wuLastUpdated',ko.toJSON(self.arrHitTimes));
     	} else {
     		// If we've previously pulled info from WU, just use the old info while waiting for refresh
-    		if (currentMarker.city() != '') self.mapInfoWindow.open(self.map,currentMarker.marker);
+    		if (currentMarker.city() !== '') self.mapInfoWindow.open(self.map,currentMarker.marker);
     		console.log("Not making call - too many hits/min: " + (now - self.arrHitTimes[0]) + " - " + self.arrHitTimes);
     	}
     };
@@ -285,18 +285,18 @@ console.log("app.js done.");
 // DOM manipulation/reading functions here. Call from ViewModel to enforce separation of concerns
 function getMarkerContent() {
 	return $('.windowContent').html();// Only get marker-specific content.
-};
+}
 function getWindowContent() {
 	return $('.windowContainer').html();// Get the content for the whole window, including buttons
-};
+}
 function loadGoogleMap() {// Load map asynchronously - See Google Documentation.
 	console.log("Fetching map src");
 	try {
 		 var script = document.createElement('script');
 		  script.type = 'text/javascript';
-		  script.src = 'https://maps.googleapis.com/maps/api/js?key=' + viewModel.google_key + '&callback=viewModel.loadMap'
+		  script.src = 'https://maps.googleapis.com/maps/api/js?key=' + viewModel.google_key + '&callback=viewModel.loadMap';
 		  document.body.appendChild(script);
 	} catch (err) {
 		console.log("error getting src");
 	}
-};
+}
