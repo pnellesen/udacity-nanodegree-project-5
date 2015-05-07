@@ -29,9 +29,11 @@
 			<button class="btn_save" title="Save list to local storage" data-bind="click: saveAllMarkers;">Save</button><button class="btn_delete" title="Clear all markers from map and storage" data-bind="click: removeAllMarkers">Clear</button>
 		</div>
 	</div>
+	<!-- <div id="mainMap" class="col-md-12" data-bind="text: mapErrorTxt"></div> -->
+	<div id="mainMap" data-bind="text: mapErrorTxt"></div>
 </div>
 
-<div id="mainMap" class="col-md-12" data-bind="text: mapErrorTxt"></div><!-- Map Div here -->
+<!--<div id="mainMap" class="col-md-12" data-bind="text: mapErrorTxt"></div>--><!-- Map Div here -->
 
 <div id="windowContainer" class="windowContainer"><!--  Hidden div to hold infoWindow content for each marker -->
 	<div class="allWindow">
